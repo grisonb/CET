@@ -495,11 +495,18 @@
       }
 
       if (heuresSupp > 0) {
-        joursTheoriques = heuresSupp / HEURES_PAR_JOUR;
-        const maxRTT = Math.floor(joursTheoriques);
-        rttEpargnables = Math.min(rttRestant, maxRTT);
-        crJours = Math.floor(joursTheoriques - rttEpargnables);
-      }
+  // Calcul des jours théoriques issus des heures supp
+  joursTheoriques = heuresSupp / HEURES_PAR_JOUR;
+
+  // Corrige les erreurs d'arrondi type 20.999999999 en ajoutant un epsilon
+  const maxRTT = Math.floor(joursTheoriques + 1e-9);
+
+  rttEpargnables = Math.min(rttRestant, maxRTT);
+
+  // Même correction pour le calcul du CR
+  crJours = Math.floor((joursTheoriques - rttEpargnables) + 1e-9);
+}
+
 
       if (seuil1607Atteint) {
         crn1RestantsLogiques = Math.max(0, crn1Input - crn1Utilises);
