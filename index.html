@@ -13,12 +13,12 @@
     }
 
     h1 {
-      font-size: 1.4rem;
+      font-size: 2rem;  /* ← taille augmentée */
       text-align: center;
       margin-bottom: 10px;
     }
 
-    /* Blocs neutres (gris) par défaut */
+    /* Blocs neutres par défaut */
     .bloc {
       border: 1px solid #e0e0e0;
       padding: 12px 18px;
@@ -27,7 +27,7 @@
       background: #fafafa;
     }
 
-    /* Seul le bloc Données de l'agent est bleu */
+    /* Bloc Données de l’agent en bleu */
     .bloc-agent {
       border: 1px solid #c5d8f5;
       background: #e8f3ff;
@@ -173,7 +173,7 @@
       background: #e8f3ff;
       border: 1px solid #c5d8f5;
       font-weight: 600;
-      font-size: 1.45rem;   /* taille augmentée x1,5 */
+      font-size: 1.45rem; 
     }
 
     /* Couleurs d’épargne */
@@ -241,12 +241,12 @@
   <h1>Gestion des jours épargnables (épargne temps / €€€)</h1>
 
   <!-- Bandeau résumé rapide -->
-  <div id="quickSummary">Synthèse : en attente de calcul.</div>
+  <div id="quickSummary">Synthèse jours épargnables : en attente de calcul.</div>
 
   <!-- ====================== LIGNE 1 ====================== -->
   <div class="row">
 
-    <!-- Données (bleu) -->
+    <!-- Données -->
     <div class="bloc bloc-agent">
       <h2>Données de l'agent</h2>
 
@@ -345,7 +345,6 @@
         <input type="number" id="crJours" readonly>
       </label>
 
-      <!-- Résumé -->
       <div id="resume"></div>
     </div>
 
@@ -416,13 +415,11 @@
     }
 
     function resetAll() {
-      // Entrées
       document.getElementById('heures').value = 0;
       document.getElementById('caRestant').value = 0;
       document.getElementById('rttRestant').value = 0;
       document.getElementById('crn1').value = 0;
 
-      // Résultats
       const ids = [
         'heuresRestantes','heuresSupp','joursTheoriques','epargnePossible',
         'caEpargnables','rttEpargnables','crn1Epargnables','crJours',
@@ -430,15 +427,13 @@
       ];
       ids.forEach(id => document.getElementById(id).value = 0);
 
-      // Graphique
       document.getElementById('bar1607').style.width = '0%';
       document.getElementById('barSup').style.width = '0%';
       document.getElementById('labelMain').textContent = '0 / 1607 h';
       document.getElementById('labelSup').textContent = '';
 
-      // Résumé + couleurs + modale + bandeau
       document.getElementById('resume').innerHTML = '';
-      document.getElementById('quickSummary').textContent = 'Synthèse : en attente de calcul.';
+      document.getElementById('quickSummary').textContent = 'Synthèse jours épargnables : en attente de calcul.';
       resetEpargneColors();
       hideModal();
     }
@@ -468,7 +463,6 @@
       let eligibleEpargneCA = false;
       let explicationCA = "";
 
-      // Heures seules
       if (heures >= HEURES_ANNUELLES) {
         seuil1607Atteint = true;
         eligibleEpargneCA = true;
@@ -478,7 +472,6 @@
         heuresRestantes = HEURES_ANNUELLES - heures;
       }
 
-      // CRN-1 pour atteindre 1607h
       if (!seuil1607Atteint && crn1Input > 0) {
         const heuresManquantes = HEURES_ANNUELLES - heures;
         const joursManquants = heuresManquantes / HEURES_PAR_JOUR;
@@ -491,7 +484,6 @@
         }
       }
 
-      // CA épargnables
       if (eligibleEpargneCA) {
         if (caRestant <= 9) {
           caEpargnables = caRestant;
@@ -502,7 +494,6 @@
         }
       }
 
-      // RTT + CR sur heures supp
       if (heuresSupp > 0) {
         joursTheoriques = heuresSupp / HEURES_PAR_JOUR;
         const maxRTT = Math.floor(joursTheoriques);
@@ -510,7 +501,6 @@
         crJours = Math.floor(joursTheoriques - rttEpargnables);
       }
 
-      // CRN-1 épargnables
       if (seuil1607Atteint) {
         crn1RestantsLogiques = Math.max(0, crn1Input - crn1Utilises);
         crn1Epargnables = Math.min(crn1RestantsLogiques, 15);
@@ -520,7 +510,6 @@
       const epargnePossible =
         caEpargnables + rttEpargnables + crn1Epargnables;
 
-      // Affichages numériques
       document.getElementById("epargnePossible").value = formatNum(epargnePossible);
       document.getElementById("caEpargnables").value = formatNum(caEpargnables);
       document.getElementById("rttEpargnables").value = formatNum(rttEpargnables);
@@ -532,7 +521,6 @@
       document.getElementById("crn1Utilises").value = formatNum(crn1Utilises);
       document.getElementById("crn2").value = formatNum(crn2);
 
-      // Barre graphique
       const bar = document.getElementById("bar1607");
       const barSup = document.getElementById("barSup");
       const labMain = document.getElementById("labelMain");
@@ -565,7 +553,6 @@
         barSup.style.width = "0%";
       }
 
-      // Résumé texte
       let resume = "";
 
       if (seuil1607Atteint) {
@@ -596,11 +583,11 @@
 
       document.getElementById('resume').innerHTML = resume;
 
-      // Bandeau résumé rapide
+      /* 🔵 Mise à jour du bandeau synthèse */
       document.getElementById('quickSummary').textContent =
-        `Synthèse : ${formatNum(caEpargnables)} CA / ${formatNum(rttEpargnables)} RTT / ${formatNum(crn1Epargnables)} CRN-1 / ${formatNum(crJours)} CR / ${formatNum(crn2)} CRN-2`;
+        `Synthèse jours épargnables : ${formatNum(caEpargnables)} CA / ${formatNum(rttEpargnables)} RTT / ${formatNum(crn1Epargnables)} CRN-1 / ${formatNum(crJours)} CR / ${formatNum(crn2)} CRN-2`;
 
-      // Couleurs des champs Épargne CA / RTT / CR
+      /* Couleurs (vert si > 0, rouge sinon) */
       resetEpargneColors();
 
       const caField   = document.getElementById('caEpargnables');
@@ -609,44 +596,16 @@
       const crField   = document.getElementById('crJours');
       const crn2Field = document.getElementById('crn2');
 
-      // CA : vert si > 0, rouge sinon
-      if (caEpargnables > 0) {
-        caField.classList.add('epargne-ok');
-      } else {
-        caField.classList.add('epargne-nok');
-      }
+      (caEpargnables > 0 ? caField.classList.add('epargne-ok') : caField.classList.add('epargne-nok'));
+      (rttEpargnables > 0 ? rttField.classList.add('epargne-ok') : rttField.classList.add('epargne-nok'));
+      (crn1Epargnables > 0 ? crn1Field.classList.add('epargne-ok') : crn1Field.classList.add('epargne-nok'));
+      (crJours > 0 ? crField.classList.add('epargne-ok') : crField.classList.add('epargne-nok'));
 
-      // RTT : vert si > 0, rouge sinon
-      if (rttEpargnables > 0) {
-        rttField.classList.add('epargne-ok');
-      } else {
-        rttField.classList.add('epargne-nok');
-      }
+      if (crn2 > 0) crn2Field.classList.add('epargne-ok');
 
-      // CRN-1 : vert si > 0, rouge sinon
-      if (crn1Epargnables > 0) {
-        crn1Field.classList.add('epargne-ok');
-      } else {
-        crn1Field.classList.add('epargne-nok');
-      }
-
-      // CR : vert si > 0, rouge sinon
-      if (crJours > 0) {
-        crField.classList.add('epargne-ok');
-      } else {
-        crField.classList.add('epargne-nok');
-      }
-
-      // CRN-2 : vert si > 0 (sinon laissé neutre)
-      if (crn2 > 0) {
-        crn2Field.classList.add('epargne-ok');
-      }
-
-      // Modale
       showModal(resume);
     }
 
-    // Init
     initAnnee();
   </script>
 
