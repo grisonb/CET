@@ -257,9 +257,8 @@
 
     <div id="quickSummary">Synthèse jours épargnables : en attente de calcul.</div>
 
-    <!-- ===== LIGNE 1 : Données + Résultats (désormais l’un sous l’autre) ===== -->
+    <!-- ===== Données ===== -->
     <div class="row">
-      <!-- Données -->
       <div class="bloc bloc-agent">
         <h2>Données de l'agent</h2>
 
@@ -290,8 +289,8 @@
       </div>
     </div>
 
+    <!-- ===== Résultats ===== -->
     <div class="row">
-      <!-- Résultats -->
       <div class="bloc resultat">
         <h2>Résultats</h2>
 
@@ -329,7 +328,7 @@
       </div>
     </div>
 
-    <!-- ===== LIGNE 2 : Épargne ===== -->
+    <!-- ===== Épargne CA / RTT / CR ===== -->
     <div class="row">
       <div class="bloc resultat">
         <h3>Épargne CA / RTT / CR</h3>
@@ -360,7 +359,7 @@
     </div>
   </div>
 
-  <!-- ====================== MODALE ====================== -->
+  <!-- ===== MODALE ===== -->
   <div id="modalOverlay">
     <div id="modalBox">
       <div id="modalTitle">Résumé de votre situation CET</div>
@@ -406,6 +405,13 @@
       document.getElementById('modalOverlay').style.display = 'none';
     }
 
+    function resetEpargneColors() {
+      ['caEpargnables', 'rttEpargnables', 'crn1Epargnables', 'crJours', 'crn2'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('epargne-ok', 'epargne-nok');
+      });
+    }
+
     function resetAll() {
       ['heures','caRestant','rttRestant','crn1'].forEach(id =>
         document.getElementById(id).value = ''
@@ -426,6 +432,7 @@
       document.getElementById("quickSummary").textContent =
         "Synthèse jours épargnables : en attente de calcul.";
 
+      resetEpargneColors();
       hideModal();
     }
 
@@ -569,6 +576,24 @@
 
       document.getElementById("quickSummary").textContent =
         `Synthèse jours épargnables : ${caEpargnables} CA / ${rttEpargnables} RTT / ${crn1Epargnables} CRN-1 / ${crJours} CR / ${crn2} CRN-2`;
+
+      /* === Coloration vert/rouge des champs d'épargne === */
+      resetEpargneColors();
+
+      const caField   = document.getElementById('caEpargnables');
+      const rttField  = document.getElementById('rttEpargnables');
+      const crn1Field = document.getElementById('crn1Epargnables');
+      const crField   = document.getElementById('crJours');
+      const crn2Field = document.getElementById('crn2');
+
+      (caEpargnables  > 0 ? caField.classList.add('epargne-ok') : caField.classList.add('epargne-nok'));
+      (rttEpargnables > 0 ? rttField.classList.add('epargne-ok') : rttField.classList.add('epargne-nok'));
+      (crn1Epargnables> 0 ? crn1Field.classList.add('epargne-ok') : crn1Field.classList.add('epargne-nok'));
+      (crJours        > 0 ? crField.classList.add('epargne-ok') : crField.classList.add('epargne-nok'));
+
+      if (crn2 > 0) {
+        crn2Field.classList.add('epargne-ok');
+      }
 
       showModal(R);
     }
