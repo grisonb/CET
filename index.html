@@ -3,15 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <title>Calcul CET</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+    /* ===== Layout global ===== */
     body {
       font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      line-height: 1.4;
+    }
+
+    .page {
       max-width: 1100px;
       margin: 20px auto;
       padding: 0 16px;
-      line-height: 1.4;
     }
 
     h1 {
@@ -108,6 +114,7 @@
       background: #c62828;
     }
 
+    /* ===== Barre 1607h ===== */
     .graph1607-container {
       margin-top: 14px;
     }
@@ -184,6 +191,7 @@
       border-color: #e59a9a !important;
     }
 
+    /* ===== Modale ===== */
     #modalOverlay {
       position: fixed;
       inset: 0;
@@ -229,9 +237,9 @@
       background: #43a047;
     }
 
-    /* --- Smartphone --- */
+    /* ===== Smartphone ===== */
     @media (max-width: 600px) {
-      body {
+      .page {
         margin: 10px auto;
         padding: 0 8px;
         font-size: 0.95rem;
@@ -252,124 +260,115 @@
       .graph1607-bar-bg {
         max-width: 100%;
       }
-
-      /* IMPORTANT : tous les blocs pleine largeur, même "Données de l'agent" */
-      .row {
-        display: block;
-      }
-
-      .row .bloc {
-        width: 100%;
-        max-width: 100%;
-        flex: none;
-      }
     }
   </style>
 </head>
 
 <body>
-  <h1>Gestion des jours épargnables (épargne temps / €€€)</h1>
+  <div class="page">
+    <h1>Gestion des jours épargnables (épargne temps / €€€)</h1>
 
-  <div id="quickSummary">Synthèse jours épargnables : en attente de calcul.</div>
+    <div id="quickSummary">Synthèse jours épargnables : en attente de calcul.</div>
 
-  <!-- ====================== LIGNE 1 ====================== -->
-  <div class="row">
+    <!-- ====================== LIGNE 1 ====================== -->
+    <div class="row">
 
-    <!-- Données -->
-    <div class="bloc bloc-agent">
-      <h2>Données de l'agent</h2>
+      <!-- Données -->
+      <div class="bloc bloc-agent">
+        <h2>Données de l'agent</h2>
 
-      <label>
-        Heures effectuées dans l'année :
-        <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
-          <input type="number" id="heures" step="0.1" min="0">
-          <select id="annee" onchange="majLibelleCR()"></select>
-        </div>
-      </label>
+        <label>
+          Heures effectuées dans l'année :
+          <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <input type="number" id="heures" step="0.1" min="0">
+            <select id="annee" onchange="majLibelleCR()"></select>
+          </div>
+        </label>
 
-      <label>Nombre de CA restant (jours) :
-        <input type="number" id="caRestant" step="1" min="0">
-      </label>
+        <label>Nombre de CA restant (jours) :
+          <input type="number" id="caRestant" step="1" min="0">
+        </label>
 
-      <label>Nombre de RTT restant (jours) :
-        <input type="number" id="rttRestant" step="1" min="0">
-      </label>
+        <label>Nombre de RTT restant (jours) :
+          <input type="number" id="rttRestant" step="1" min="0">
+        </label>
 
-      <label>CRN-1 (jours) :
-        <input type="number" id="crn1" step="0.01" min="0">
-      </label>
+        <label>CRN-1 (jours) :
+          <input type="number" id="crn1" step="0.01" min="0">
+        </label>
 
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button type="button" class="btn-primary" onclick="calculCET()">Calculer</button>
-        <button type="button" class="btn-danger" onclick="resetAll()">Remise à 0</button>
-      </div>
-    </div>
-
-    <!-- Résultats -->
-    <div class="bloc resultat">
-      <h2>Résultats</h2>
-
-      <div class="graph1607-container">
-        <div class="graph1607-label-row">
-          <div class="graph1607-label-main" id="labelMain">0 / 1607 h</div>
-          <div class="graph1607-label-sup" id="labelSup"></div>
-        </div>
-
-        <div class="graph1607-bar-bg">
-          <div class="graph1607-bar-fill" id="bar1607"></div>
-          <div class="graph1607-bar-sup" id="barSup"></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-primary" onclick="calculCET()">Calculer</button>
+          <button type="button" class="btn-danger" onclick="resetAll()">Remise à 0</button>
         </div>
       </div>
 
-      <label>Heures restantes pour atteindre 1607h :
-        <input type="number" id="heuresRestantes" readonly>
-      </label>
+      <!-- Résultats -->
+      <div class="bloc resultat">
+        <h2>Résultats</h2>
 
-      <label>CRN-1 utilisés pour atteindre 1607h (jours) :
-        <input type="number" id="crn1Utilises" readonly>
-      </label>
+        <div class="graph1607-container">
+          <div class="graph1607-label-row">
+            <div class="graph1607-label-main" id="labelMain">0 / 1607 h</div>
+            <div class="graph1607-label-sup" id="labelSup"></div>
+          </div>
 
-      <label>Heures supplémentaires :
-        <input type="number" id="heuresSupp" readonly>
-      </label>
+          <div class="graph1607-bar-bg">
+            <div class="graph1607-bar-fill" id="bar1607"></div>
+            <div class="graph1607-bar-sup" id="barSup"></div>
+          </div>
+        </div>
 
-      <label>Jours théoriques issus des heures supp :
-        <input type="number" id="joursTheoriques" readonly>
-      </label>
+        <label>Heures restantes pour atteindre 1607h :
+          <input type="number" id="heuresRestantes" readonly>
+        </label>
 
-      <label>Épargne totale possible (jours) :
-        <input type="number" id="epargnePossible" readonly>
-      </label>
+        <label>CRN-1 utilisés pour atteindre 1607h (jours) :
+          <input type="number" id="crn1Utilises" readonly>
+        </label>
+
+        <label>Heures supplémentaires :
+          <input type="number" id="heuresSupp" readonly>
+        </label>
+
+        <label>Jours théoriques issus des heures supp :
+          <input type="number" id="joursTheoriques" readonly>
+        </label>
+
+        <label>Épargne totale possible (jours) :
+          <input type="number" id="epargnePossible" readonly>
+        </label>
+      </div>
     </div>
-  </div>
 
-  <!-- ====================== LIGNE 2 ====================== -->
-  <div class="row">
-    <div class="bloc resultat">
-      <h3>Épargne CA / RTT / CR</h3>
+    <!-- ====================== LIGNE 2 ====================== -->
+    <div class="row">
+      <div class="bloc resultat">
+        <h3>Épargne CA / RTT / CR</h3>
 
-      <label>CA épargnables (9 jours maxi) :
-        <input type="number" id="caEpargnables" readonly>
-      </label>
+        <label>CA épargnables (9 jours maxi) :
+          <input type="number" id="caEpargnables" readonly>
+        </label>
 
-      <label>RTT épargnables (21 jours maxi - 1 jour solidarité) :
-        <input type="number" id="rttEpargnables" readonly>
-      </label>
+        <label>RTT épargnables (21 jours maxi - 1 jour solidarité) :
+          <input type="number" id="rttEpargnables" readonly>
+        </label>
 
-      <label id="crLabel">
-        CR utilisable en <span id="crAnnee"></span> :
-        <input type="number" id="crJours" readonly>
-      </label>
+        <label id="crLabel">
+          CR utilisable en <span id="crAnnee"></span> :
+          <input type="number" id="crJours" readonly>
+        </label>
 
-      <label>CRN-1 épargnables (15 jours maxi) :
-        <input type="number" id="crn1Epargnables" readonly>
-      </label>
+        <label>CRN-1 épargnables (15 jours maxi) :
+          <input type="number" id="crn1Epargnables" readonly>
+        </label>
 
-      <label>CRN-2 compteur exceptionnel :
-        <input type="number" id="crn2" readonly>
-      </label>
+        <label>CRN-2 compteur exceptionnel :
+          <input type="number" id="crn2" readonly>
+        </label>
 
-      <div id="resume"></div>
+        <div id="resume"></div>
+      </div>
     </div>
   </div>
 
@@ -424,9 +423,10 @@
         document.getElementById(id).value = ''
       );
 
-      ['heuresRestantes','heuresSupp','joursTheoriques','epargnePossible',
-       'caEpargnables','rttEpargnables','crn1Epargnables','crJours',
-       'crn1Utilises','crn2'
+      [
+        'heuresRestantes','heuresSupp','joursTheoriques','epargnePossible',
+        'caEpargnables','rttEpargnables','crn1Epargnables','crJours',
+        'crn1Utilises','crn2'
       ].forEach(id => document.getElementById(id).value = 0);
 
       document.getElementById("bar1607").style.width = "0%";
