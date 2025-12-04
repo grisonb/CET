@@ -40,20 +40,7 @@
     }
 
     .row {
-      display: flex;
-      gap: 20px;
-      align-items: flex-start;
       margin-bottom: 15px;
-    }
-
-    .row .bloc {
-      flex: 1 1 0;
-    }
-
-    @media (max-width: 900px) {
-      .row {
-        flex-direction: column;
-      }
     }
 
     label {
@@ -260,12 +247,6 @@
       .graph1607-bar-bg {
         max-width: 100%;
       }
-
-      /* Correction largeur bloc Données de l’agent */
-      .bloc-agent {
-        width: 100% !important;
-        max-width: 100% !important;
-      }
     }
   </style>
 </head>
@@ -276,9 +257,8 @@
 
     <div id="quickSummary">Synthèse jours épargnables : en attente de calcul.</div>
 
-    <!-- ====================== LIGNE 1 ====================== -->
+    <!-- ===== LIGNE 1 : Données + Résultats (désormais l’un sous l’autre) ===== -->
     <div class="row">
-
       <!-- Données -->
       <div class="bloc bloc-agent">
         <h2>Données de l'agent</h2>
@@ -308,7 +288,9 @@
           <button type="button" class="btn-danger" onclick="resetAll()">Remise à 0</button>
         </div>
       </div>
+    </div>
 
+    <div class="row">
       <!-- Résultats -->
       <div class="bloc resultat">
         <h2>Résultats</h2>
@@ -347,7 +329,7 @@
       </div>
     </div>
 
-    <!-- ====================== LIGNE 2 ====================== -->
+    <!-- ===== LIGNE 2 : Épargne ===== -->
     <div class="row">
       <div class="bloc resultat">
         <h3>Épargne CA / RTT / CR</h3>
