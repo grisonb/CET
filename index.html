@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Calcul CET</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
 
   <style>
     body {
@@ -204,17 +205,34 @@
       font-size: 0.95rem;
     }
 
+    #modalTitle {
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    #modalText {
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
     #modalCloseBtn {
+      display: inline-block;
       padding: 7px 16px;
       border-radius: 20px;
       border: none;
       background: #4caf50;
       color: #fff;
+      font-weight: 600;
       cursor: pointer;
       float: right;
     }
 
-    /* --- Smartphone --- */
+    #modalCloseBtn:hover {
+      background: #43a047;
+    }
+
+    /* ----- Optimisation smartphone ----- */
     @media (max-width: 600px) {
       body {
         margin: 10px auto;
@@ -226,6 +244,7 @@
         font-size: 1.4rem;
       }
 
+      /* On ne force PAS la largeur des inputs à 100% sur mobile */
       button {
         width: 100%;
       }
@@ -237,11 +256,6 @@
       .graph1607-bar-bg {
         max-width: 100%;
       }
-
-      /* Correction : blocs = toute largeur */
-      .row .bloc {
-        width: 100%;
-      }
     }
   </style>
 </head>
@@ -251,7 +265,7 @@
 
   <div id="quickSummary">Synthèse jours épargnables : en attente de calcul.</div>
 
-  <!-- ====================== LIGNE 1 ====================== -->
+  <!-- LIGNE 1 -->
   <div class="row">
 
     <!-- Données -->
@@ -266,15 +280,18 @@
         </div>
       </label>
 
-      <label>Nombre de CA restant (jours) :
+      <label>
+        Nombre de CA restant (jours) :
         <input type="number" id="caRestant" step="1" min="0">
       </label>
 
-      <label>Nombre de RTT restant (jours) :
+      <label>
+        Nombre de RTT restant (jours) :
         <input type="number" id="rttRestant" step="1" min="0">
       </label>
 
-      <label>CRN-1 (jours) :
+      <label>
+        CRN-1 (jours) :
         <input type="number" id="crn1" step="0.01" min="0">
       </label>
 
@@ -284,54 +301,63 @@
       </div>
     </div>
 
-    <!-- Résultats -->
+    <!-- Résultats principaux -->
     <div class="bloc resultat">
       <h2>Résultats</h2>
 
       <div class="graph1607-container">
         <div class="graph1607-label-row">
-          <div class="graph1607-label-main" id="labelMain">0 / 1607 h</div>
+          <div class="graph1607-label-main" id="labelMain">
+            0 / 1607 h
+          </div>
           <div class="graph1607-label-sup" id="labelSup"></div>
         </div>
 
-        <div class="graph1607-bar-bg">
+        <div class="graph1607-bar-bg" id="bg1607">
           <div class="graph1607-bar-fill" id="bar1607"></div>
           <div class="graph1607-bar-sup" id="barSup"></div>
         </div>
       </div>
 
-      <label>Heures restantes pour atteindre 1607h :
+      <label>
+        Heures restantes pour atteindre 1607h :
         <input type="number" id="heuresRestantes" readonly>
       </label>
 
-      <label>CRN-1 utilisés pour atteindre 1607h (jours) :
+      <label>
+        CRN-1 utilisés pour atteindre 1607h (jours) :
         <input type="number" id="crn1Utilises" readonly>
       </label>
 
-      <label>Heures supplémentaires :
+      <label>
+        Heures supplémentaires :
         <input type="number" id="heuresSupp" readonly>
       </label>
 
-      <label>Jours théoriques issus des heures supp :
+      <label>
+        Jours théoriques issus des heures supp (heures supp / 7,8) :
         <input type="number" id="joursTheoriques" readonly>
       </label>
 
-      <label>Épargne totale possible (jours) :
+      <label>
+        Épargne totale possible (jours) :
         <input type="number" id="epargnePossible" readonly>
       </label>
     </div>
   </div>
 
-  <!-- ====================== LIGNE 2 ====================== -->
+  <!-- LIGNE 2 -->
   <div class="row">
     <div class="bloc resultat">
       <h3>Épargne CA / RTT / CR</h3>
 
-      <label>CA épargnables (9 jours maxi) :
+      <label>
+        CA épargnables (9 jours maxi) :
         <input type="number" id="caEpargnables" readonly>
       </label>
 
-      <label>RTT épargnables (21 jours maxi - 1 solidarité) :
+      <label>
+        RTT épargnables (21 jours maxi - 1 jour solidarité) :
         <input type="number" id="rttEpargnables" readonly>
       </label>
 
@@ -340,11 +366,13 @@
         <input type="number" id="crJours" readonly>
       </label>
 
-      <label>CRN-1 épargnables (15 jours maxi) :
+      <label>
+        CRN-1 épargnables (15 jours maxi) :
         <input type="number" id="crn1Epargnables" readonly>
       </label>
 
-      <label>CRN-2 compteur exceptionnel :
+      <label>
+        CRN-2 compteur exceptionnel :
         <input type="number" id="crn2" readonly>
       </label>
 
@@ -352,7 +380,7 @@
     </div>
   </div>
 
-  <!-- ====================== MODALE ====================== -->
+  <!-- MODALE -->
   <div id="modalOverlay">
     <div id="modalBox">
       <div id="modalTitle">Résumé de votre situation CET</div>
@@ -362,37 +390,39 @@
     </div>
   </div>
 
+  <!-- SCRIPT -->
   <script>
-    /* Arrondi des jours vers le bas */
+    function formatNum(n) {
+      return Number.isInteger(n) ? n.toString() : n.toFixed(2);
+    }
+
+    // Arrondi "jours" vers le bas, sans décimal
     function floorDay(n) {
       return Math.floor((n || 0) + 1e-9);
     }
 
-    function formatNum(n) {
-      return Number.isInteger(n) ? n : n.toFixed(2);
-    }
-
-    /* Initialisation année */
     function initAnnee() {
       const select = document.getElementById("annee");
       const current = new Date().getFullYear();
+
       for (let a = 2023; a <= 2032; a++) {
-        const o = document.createElement("option");
-        o.value = a;
-        o.textContent = a;
-        if (a === current) o.selected = true;
-        select.appendChild(o);
+        const opt = document.createElement("option");
+        opt.value = a;
+        opt.textContent = a;
+        if (a === current) opt.selected = true;
+        select.appendChild(opt);
       }
+
       majLibelleCR();
     }
 
     function majLibelleCR() {
-      document.getElementById('crAnnee').textContent =
-        parseInt(document.getElementById('annee').value, 10) + 1;
+      const annee = parseInt(document.getElementById('annee').value, 10);
+      document.getElementById('crAnnee').textContent = annee + 1;
     }
 
-    function showModal(html) {
-      document.getElementById('modalText').innerHTML = html;
+    function showModal(htmlContent) {
+      document.getElementById('modalText').innerHTML = htmlContent;
       document.getElementById('modalOverlay').style.display = 'flex';
     }
 
@@ -400,183 +430,248 @@
       document.getElementById('modalOverlay').style.display = 'none';
     }
 
+    function resetEpargneColors() {
+      ['caEpargnables', 'rttEpargnables', 'crn1Epargnables', 'crJours', 'crn2'].forEach(id => {
+        document.getElementById(id).classList.remove('epargne-ok', 'epargne-nok');
+      });
+    }
+
     function resetAll() {
-      ['heures','caRestant','rttRestant','crn1'].forEach(id =>
-        document.getElementById(id).value = ''
-      );
+      document.getElementById('heures').value = '';
+      document.getElementById('caRestant').value = '';
+      document.getElementById('rttRestant').value = '';
+      document.getElementById('crn1').value = '';
 
-      ['heuresRestantes','heuresSupp','joursTheoriques','epargnePossible',
-       'caEpargnables','rttEpargnables','crn1Epargnables','crJours',
-       'crn1Utilises','crn2'
-      ].forEach(id => document.getElementById(id).value = 0);
+      const ids = [
+        'heuresRestantes','heuresSupp','joursTheoriques','epargnePossible',
+        'caEpargnables','rttEpargnables','crn1Epargnables','crJours',
+        'crn1Utilises','crn2'
+      ];
+      ids.forEach(id => document.getElementById(id).value = 0);
 
-      document.getElementById("bar1607").style.width = "0%";
-      document.getElementById("barSup").style.width = "0%";
+      document.getElementById('bar1607').style.width = '0%';
+      document.getElementById('barSup').style.width = '0%';
+      document.getElementById('labelMain').textContent = '0 / 1607 h';
+      document.getElementById('labelSup').textContent = '';
 
-      document.getElementById("labelMain").textContent = "0 / 1607 h";
-      document.getElementById("labelSup").textContent = "";
-      document.getElementById("resume").innerHTML = "";
-      document.getElementById("quickSummary").textContent =
-        "Synthèse jours épargnables : en attente de calcul.";
-
+      document.getElementById('resume').innerHTML = '';
+      document.getElementById('quickSummary').textContent = 'Synthèse jours épargnables : en attente de calcul.';
+      resetEpargneColors();
       hideModal();
     }
 
     function calculCET() {
-
-      const heures      = parseFloat(heures.value)      || 0;
-      const caRestant   = parseFloat(caRestant.value)   || 0;
-      const rttRestant  = parseFloat(rttRestant.value)  || 0;
-      const crn1Input   = parseFloat(crn1.value)        || 0;
+      const heures = parseFloat(document.getElementById('heures').value) || 0;
+      const caRestant = parseFloat(document.getElementById('caRestant').value) || 0;
+      const rttRestant = parseFloat(document.getElementById('rttRestant').value) || 0;
+      const crn1Input = parseFloat(document.getElementById('crn1').value) || 0;
 
       const HEURES_ANNUELLES = 1607;
-      const HEURES_PAR_JOUR  = 7.8;
+      const HEURES_PAR_JOUR = 7.8;
 
+      let caEpargnables = 0;
+      let rttEpargnables = 0;
+      let crJours = 0;
       let heuresSupp = 0;
+      let joursTheoriques = 0;
       let heuresRestantes = 0;
-      let seuil1607 = false;
 
-      /* Seuil 1607 h */
+      let crn1Utilises = 0;
+      let crn1Epargnables = 0;
+      let crn2 = 0;
+      let crn1RestantsLogiques = 0;
+
+      let seuil1607Atteint = false;
+      let eligibleEpargneCA = false;
+      let explicationCA = "";
+
+      // Pour l'explication RTT générés - 1 solidarité
+      let baseRTTEligibles = 0;
+
       if (heures >= HEURES_ANNUELLES) {
-        seuil1607 = true;
+        seuil1607Atteint = true;
+        eligibleEpargneCA = true;
+        heuresRestantes = 0;
         heuresSupp = heures - HEURES_ANNUELLES;
       } else {
         heuresRestantes = HEURES_ANNUELLES - heures;
       }
 
-      /* CRN-1 pour atteindre 1607 */
-      let crn1Utilises = 0;
-      if (!seuil1607 && crn1Input > 0) {
-        const joursManquants = (HEURES_ANNUELLES - heures) / HEURES_PAR_JOUR;
+      if (!seuil1607Atteint && crn1Input > 0) {
+        const heuresManquantes = HEURES_ANNUELLES - heures;
+        const joursManquants = heuresManquantes / HEURES_PAR_JOUR;
+
         if (crn1Input >= joursManquants) {
           crn1Utilises = joursManquants;
-          seuil1607 = true;
+          seuil1607Atteint = true;
+          eligibleEpargneCA = true;
+          heuresRestantes = 0;
         }
       }
 
-      /* CA épargnables */
-      let caEpargnables = 0;
-      let explicationCA = "";
-      if (seuil1607) {
-        if (caRestant <= 9) caEpargnables = caRestant;
-        else explicationCA =
-          "Vous avez bien atteint les 1607 h, mais vous ne pouvez pas épargner de CA car il vous reste plus de 9 jours (minimum 20 CA à poser).";
+      if (eligibleEpargneCA) {
+        if (caRestant <= 9) {
+          caEpargnables = caRestant;
+        } else {
+          caEpargnables = 0;
+          explicationCA =
+            "Vous avez bien atteint les 1607 h, mais vous ne pouvez pas épargner de CA car il vous reste plus de 9 jours, ce qui signifie que vous n’avez pas posé les 20 jours minimum de CA requis.";
+        }
       }
-
-      /* RTT / CR issus heures supp */
-      let joursTheoriques = 0;
-      let rttEpargnables = 0;
-      let crJours = 0;
-      let baseRTT = 0;
 
       if (heuresSupp > 0) {
         joursTheoriques = heuresSupp / HEURES_PAR_JOUR;
-        const joursPleins = floorDay(joursTheoriques);
 
-        baseRTT = Math.min(joursPleins, rttRestant, 21);
+        const joursPleins = Math.floor(joursTheoriques + 1e-9);
 
-        const rttSansSolidarite = Math.max(0, baseRTT - 1);
-        rttEpargnables = Math.min(20, rttSansSolidarite);
+        if (joursPleins > 0) {
+          const PLAFOND_RTT_THEORIQUE = 21;
+          baseRTTEligibles = Math.min(rttRestant, joursPleins, PLAFOND_RTT_THEORIQUE);
 
-        crJours = floorDay(joursTheoriques - baseRTT);
+          const rttApresSolidarite = Math.max(0, baseRTTEligibles - 1);
+
+          const PLAFOND_RTT_CET = 20;
+          rttEpargnables = Math.min(PLAFOND_RTT_CET, rttApresSolidarite);
+
+          crJours = Math.floor((joursTheoriques - baseRTTEligibles) + 1e-9);
+        } else {
+          rttEpargnables = 0;
+          crJours = 0;
+        }
       }
 
-      /* CRN-1 → CET + CRN-2 */
-      let crn1Restants = 0;
-      let crn1Epargnables = 0;
-      let crn2 = 0;
-
-      if (seuil1607) {
-        crn1Restants = crn1Input - crn1Utilises;
-        if (crn1Restants < 0) crn1Restants = 0;
-
-        crn1Epargnables = Math.min(crn1Restants, 15);
-        crn2 = floorDay(crn1Restants - crn1Epargnables);
+      if (seuil1607Atteint) {
+        crn1RestantsLogiques = Math.max(0, crn1Input - crn1Utilises);
+        crn1Epargnables = Math.min(crn1RestantsLogiques, 15);
+        crn2 = Math.max(0, crn1RestantsLogiques - crn1Epargnables);
       }
 
-      const epargneTotale =
-        caEpargnables + rttEpargnables + crn1Epargnables;
+      const epargnePossible = caEpargnables + rttEpargnables + crn1Epargnables;
 
-      /* Arrondis affichage (jours) */
-      const jTheo = floorDay(joursTheoriques);
-      const crn1Util = floorDay(crn1Utilises);
-      const baseRTTint = floorDay(baseRTT);
+      // ----- Arrondis pour l'AFFICHAGE des jours -----
+      const caEpargnablesInt         = floorDay(caEpargnables);
+      const rttEpargnablesInt        = floorDay(rttEpargnables);
+      const crn1EpargnablesInt       = floorDay(crn1Epargnables);
+      const crJoursInt               = floorDay(crJours);
+      const crn1UtilisesInt          = floorDay(crn1Utilises);
+      const crn2Int                  = floorDay(crn2);
+      const epargnePossibleInt       = floorDay(epargnePossible);
+      const joursTheoriquesInt       = floorDay(joursTheoriques);
+      const crn1RestantsLogiquesInt  = floorDay(crn1RestantsLogiques);
+      const baseRTTEligiblesInt      = floorDay(baseRTTEligibles);
 
-      /* === MISE À JOUR IHM === */
+      // ----- Mise à jour des champs -----
+      document.getElementById("epargnePossible").value = epargnePossibleInt;
+      document.getElementById("caEpargnables").value = caEpargnablesInt;
+      document.getElementById("rttEpargnables").value = rttEpargnablesInt;
+      document.getElementById("crn1Epargnables").value = crn1EpargnablesInt;
+      document.getElementById("crJours").value = crJoursInt;
+      document.getElementById("heuresSupp").value = formatNum(heuresSupp);       // heures → décimal ok
+      document.getElementById("joursTheoriques").value = joursTheoriquesInt;     // jours → entier
+      document.getElementById("heuresRestantes").value = formatNum(heuresRestantes);
+      document.getElementById("crn1Utilises").value = crn1UtilisesInt;
+      document.getElementById("crn2").value = crn2Int;
 
-      heuresRestantes.value = formatNum(heuresRestantes);
-      heuresSupp.value      = formatNum(heuresSupp);
-      joursTheoriques.value = jTheo;
-      caEpargnables.value   = caEpargnables;
-      rttEpargnables.value  = rttEpargnables;
-      crJours.value         = crJours;
-      crn1Utilises.value    = crn1Util;
-      crn1Epargnables.value = crn1Epargnables;
-      crn2.value            = crn2;
-      epargnePossible.value = epargneTotale;
-
-      /* Barre graphique */
       const bar = document.getElementById("bar1607");
       const barSup = document.getElementById("barSup");
+      const labMain = document.getElementById("labelMain");
+      const labSup = document.getElementById("labelSup");
+
+      let heuresEquivalentes =
+        seuil1607Atteint ? HEURES_ANNUELLES : Math.min(heures, HEURES_ANNUELLES);
+
+      labMain.textContent = `${formatNum(heuresEquivalentes)} / 1607 h`;
 
       if (heuresSupp > 0) {
         const total = HEURES_ANNUELLES + heuresSupp;
-        bar.style.width = (HEURES_ANNUELLES / total * 100) + "%";
-        barSup.style.width = (heuresSupp / total * 100) + "%";
+        const greenPct = (HEURES_ANNUELLES / total) * 100;
+        const redPct = (heuresSupp / total) * 100;
+
+        bar.style.width = greenPct + "%";
+        barSup.style.width = redPct + "%";
+
+        bar.style.borderRadius = "10px 0 0 10px";
+        barSup.style.borderRadius = "0 10px 10px 0";
+
+        labSup.textContent = `+${formatNum(heuresSupp)} h sup`;
       } else {
-        bar.style.width = (heures / HEURES_ANNUELLES * 100) + "%";
+        labSup.textContent = "";
+        if (seuil1607Atteint) {
+          bar.style.width = "100%";
+        } else {
+          bar.style.width = (heures / HEURES_ANNUELLES) * 100 + "%";
+        }
         barSup.style.width = "0%";
       }
 
-      document.getElementById("labelMain").textContent =
-        `${formatNum(Math.min(heures,1607))} / 1607 h`;
+      let resume = "";
 
-      document.getElementById("labelSup").textContent =
-        heuresSupp > 0 ? `+${formatNum(heuresSupp)} h sup` : "";
+      if (seuil1607Atteint) {
+        if (heures >= 1607) {
+          const supp = heures - 1607;
+          resume += `Vous atteignez le seuil de 1607 h uniquement avec vos heures effectuées.<br><br>`;
+          resume += `Vous avez effectué ${formatNum(heures)}h, soit ${formatNum(supp)}h supplémentaires.<br><br>`;
+        } else {
+          resume += `Vous atteignez le seuil de 1607 h grâce à ${crn1UtilisesInt} jour(s) de CRN-1 utilisés.<br><br>`;
+        }
 
-      /* Résumé */
-      let R = "";
+        if (rttEpargnablesInt > 0 && baseRTTEligiblesInt > 0) {
+          resume += `Vous pouvez épargner ${caEpargnablesInt} jour(s) de CA et ${rttEpargnablesInt} jour(s) de RTT (${baseRTTEligiblesInt} jours de RTT épargnables générés moins 1 jour de solidarité).<br>`;
+        } else {
+          resume += `Vous pouvez épargner ${caEpargnablesInt} jour(s) de CA et ${rttEpargnablesInt} jour(s) de RTT.<br>`;
+        }
 
-      if (seuil1607) {
+        if (explicationCA !== "") {
+          resume += `<br><span style="color:#c62828;">${explicationCA}</span><br>`;
+        }
 
-        if (heures >= 1607)
-          R += `Vous atteignez le seuil de 1607 h uniquement avec vos heures effectuées.<br><br>`;
-        else
-          R += `Vous atteignez le seuil de 1607 h grâce à ${crn1Util} jour(s) de CRN-1 utilisés.<br><br>`;
-
-        R += `Vous pouvez épargner ${caEpargnables} jour(s) de CA et ${rttEpargnables} jour(s) de RTT`;
-
-        if (baseRTTint > 0)
-          R += ` (${baseRTTint} jours générés moins 1 jour de solidarité).`;
-
-        R += `<br><br>`;
-
-        if (explicationCA)
-          R += `<span style="color:#c62828;">${explicationCA}</span><br><br>`;
-
-        R += `Il vous reste ${floorDay(crn1Restants)} jour(s) de CRN-1 après utilisation, dont ${crn1Epargnables} jour(s) épargnable(s).<br><br>`;
-        R += `Le surplus alimente ${crn2} jour(s) de CRN-2.`;
-
+        resume += `<br>Il vous reste ${crn1RestantsLogiquesInt} jour(s) de CRN-1 après utilisation, dont ${crn1EpargnablesInt} jour(s) épargnable(s).<br><br>`;
+        resume += `Le surplus éventuel de CRN-1 alimente ${crn2Int} jour(s) de CRN-2.`;
       } else {
-
-        R += `Vous n'atteignez pas le seuil de 1607 h : il manque encore ${formatNum(heuresRestantes)} h.<br><br>`;
-
-        if (crn1Input > 0)
-          R += `Vos ${crn1Input} CRN-1 ne suffisent pas à atteindre 1607 h et ne sont donc pas épargnables.`;
-        else
-          R += `Vous ne disposez d'aucun CRN-1 pour combler ce manque.`;
+        resume += `Vous n'atteignez pas le seuil de 1607 h : il manque encore ${formatNum(heuresRestantes)} heure(s).<br><br>`;
+        if (crn1Input > 0) {
+          resume += `Vos ${formatNum(crn1Input)} CRN-1 ne suffisent pas à atteindre 1607 h et ne sont donc pas épargnables cette année.`;
+        } else {
+          resume += `Vous ne disposez d'aucun CRN-1 pour combler ce manque.`;
+        }
       }
 
-      document.getElementById("resume").innerHTML = R;
+      document.getElementById('resume').innerHTML = resume;
 
-      /* Bandeau résumé rapide */
-      quickSummary.textContent =
-        `Synthèse jours épargnables : ${caEpargnables} CA / ${rttEpargnables} RTT / ${crn1Epargnables} CRN-1 / ${crJours} CR / ${crn2} CRN-2`;
+      document.getElementById('quickSummary').textContent =
+        `Synthèse jours épargnables : ${caEpargnablesInt} CA / ${rttEpargnablesInt} RTT / ${crn1EpargnablesInt} CRN-1 / ${crJoursInt} CR / ${crn2Int} CRN-2`;
 
-      showModal(R);
+      resetEpargneColors();
+
+      const caField   = document.getElementById('caEpargnables');
+      const rttField  = document.getElementById('rttEpargnables');
+      const crn1Field = document.getElementById('crn1Epargnables');
+      const crField   = document.getElementById('crJours');
+      const crn2Field = document.getElementById('crn2');
+
+      (caEpargnablesInt > 0 ? caField.classList.add('epargne-ok') : caField.classList.add('epargne-nok'));
+      (rttEpargnablesInt > 0 ? rttField.classList.add('epargne-ok') : rttField.classList.add('epargne-nok'));
+      (crn1EpargnablesInt > 0 ? crn1Field.classList.add('epargne-ok') : crn1Field.classList.add('epargne-nok'));
+      (crJoursInt > 0 ? crField.classList.add('epargne-ok') : crField.classList.add('epargne-nok'));
+
+      if (crn2Int > 0) crn2Field.classList.add('epargne-ok');
+
+      showModal(resume);
+    }
+
+    function initInputs() {
+      const editableNumberInputs = document.querySelectorAll('input[type="number"]:not([readonly])');
+      editableNumberInputs.forEach(input => {
+        input.addEventListener('focus', function () {
+          setTimeout(() => {
+            input.select();
+          }, 0);
+        });
+      });
     }
 
     initAnnee();
+    initInputs();
   </script>
 
 </body>
