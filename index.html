@@ -58,7 +58,7 @@
 
     input[type="number"] {
       display: block;
-      width: 100px;
+      width: 110px;
       padding: 6px;
       margin-top: 6px;
       font-size: 1rem;
@@ -78,7 +78,7 @@
     .resultat input {
       background: #eee;
       font-weight: bold;
-      width: 120px;
+      width: 130px;
     }
 
     button {
@@ -243,11 +243,7 @@
         font-size: 1.4rem;
       }
 
-      input[type="number"],
-      .resultat input {
-        width: 100%;
-      }
-
+      /* On ne force PAS la largeur des inputs à 100% sur mobile */
       button {
         width: 100%;
       }
@@ -552,16 +548,16 @@
       const epargnePossible = caEpargnables + rttEpargnables + crn1Epargnables;
 
       // ----- Arrondis pour l'AFFICHAGE des jours -----
-      const caEpargnablesInt      = floorDay(caEpargnables);
-      const rttEpargnablesInt     = floorDay(rttEpargnables);
-      const crn1EpargnablesInt    = floorDay(crn1Epargnables);
-      const crJoursInt            = floorDay(crJours);
-      const crn1UtilisesInt       = floorDay(crn1Utilises);
-      const crn2Int               = floorDay(crn2);
-      const epargnePossibleInt    = floorDay(epargnePossible);
-      const joursTheoriquesInt    = floorDay(joursTheoriques);
-      const crn1RestantsLogiquesInt = floorDay(crn1RestantsLogiques);
-      const baseRTTEligiblesInt   = floorDay(baseRTTEligibles);
+      const caEpargnablesInt         = floorDay(caEpargnables);
+      const rttEpargnablesInt        = floorDay(rttEpargnables);
+      const crn1EpargnablesInt       = floorDay(crn1Epargnables);
+      const crJoursInt               = floorDay(crJours);
+      const crn1UtilisesInt          = floorDay(crn1Utilises);
+      const crn2Int                  = floorDay(crn2);
+      const epargnePossibleInt       = floorDay(epargnePossible);
+      const joursTheoriquesInt       = floorDay(joursTheoriques);
+      const crn1RestantsLogiquesInt  = floorDay(crn1RestantsLogiques);
+      const baseRTTEligiblesInt      = floorDay(baseRTTEligibles);
 
       // ----- Mise à jour des champs -----
       document.getElementById("epargnePossible").value = epargnePossibleInt;
