@@ -456,16 +456,20 @@
         heuresRestantes = HEURES_ANNUELLES - heures;
       }
 
+      /* ===== CRN-1 pour atteindre 1607 h (ENTIER de jours) ===== */
       let crn1Utilises = 0;
       if (!seuil1607 && crn1Input > 0) {
-        const joursManquants = (HEURES_ANNUELLES - heures) / HEURES_PAR_JOUR;
-        if (crn1Input >= joursManquants) {
-          crn1Utilises = joursManquants;
+        const heuresManquantes = HEURES_ANNUELLES - heures;
+        const joursNecessaires = Math.ceil((heuresManquantes / HEURES_PAR_JOUR) - 1e-9);
+
+        if (joursNecessaires > 0 && crn1Input >= joursNecessaires) {
+          crn1Utilises = joursNecessaires;      // entier
           seuil1607 = true;
           heuresRestantes = 0;
         }
       }
 
+      /* CA épargnables */
       let caEpargnables = 0;
       let explicationCA = "";
       if (seuil1607) {
@@ -477,6 +481,7 @@
         }
       }
 
+      /* RTT / CR issus heures supp */
       let joursTheoriques = 0;
       let rttEpargnables = 0;
       let crJours = 0;
@@ -494,6 +499,7 @@
         crJours = floorDay(joursTheoriques - baseRTT);
       }
 
+      /* CRN-1 → CET + CRN-2 (ENTIERS) */
       let crn1Restants = 0;
       let crn1Epargnables = 0;
       let crn2 = 0;
@@ -503,16 +509,17 @@
         if (crn1Restants < 0) crn1Restants = 0;
 
         crn1Epargnables = Math.min(crn1Restants, 15);
-        crn2 = floorDay(crn1Restants - crn1Epargnables);
+        crn2 = crn1Restants - crn1Epargnables;
       }
 
       const epargneTotale =
         caEpargnables + rttEpargnables + crn1Epargnables;
 
+      /* Arrondis pour affichage */
       const jTheo           = floorDay(joursTheoriques);
-      const crn1Util        = floorDay(crn1Utilises);
-      const baseRTTint      = floorDay(baseRTT);
-      const crn1RestantsInt = floorDay(crn1Restants);
+      const crn1Util        = crn1Utilises;    // déjà entier
+      const baseRTTint      = baseRTT;         // entier
+      const crn1RestantsInt = crn1Restants;    // entier
 
       document.getElementById("heuresRestantes").value = formatNum(heuresRestantes);
       document.getElementById("heuresSupp").value      = formatNum(heuresSupp);
@@ -525,6 +532,7 @@
       document.getElementById("crn2").value            = crn2;
       document.getElementById("epargnePossible").value = epargneTotale;
 
+      /* Barre 1607h */
       const bar = document.getElementById("bar1607");
       const barSup = document.getElementById("barSup");
 
@@ -542,6 +550,7 @@
       document.getElementById("labelSup").textContent =
         heuresSupp > 0 ? `+${formatNum(heuresSupp)} h sup` : "";
 
+      /* Résumé texte */
       let R = "";
 
       if (seuil1607) {
@@ -577,7 +586,7 @@
       document.getElementById("quickSummary").textContent =
         `Synthèse jours épargnables : ${caEpargnables} CA / ${rttEpargnables} RTT / ${crn1Epargnables} CRN-1 / ${crJours} CR / ${crn2} CRN-2`;
 
-      /* === Coloration vert/rouge des champs d'épargne === */
+      /* Coloration vert/rouge */
       resetEpargneColors();
 
       const caField   = document.getElementById('caEpargnables');
@@ -590,7 +599,6 @@
       (rttEpargnables > 0 ? rttField.classList.add('epargne-ok') : rttField.classList.add('epargne-nok'));
       (crn1Epargnables> 0 ? crn1Field.classList.add('epargne-ok') : crn1Field.classList.add('epargne-nok'));
       (crJours        > 0 ? crField.classList.add('epargne-ok') : crField.classList.add('epargne-nok'));
-
       if (crn2 > 0) {
         crn2Field.classList.add('epargne-ok');
       }
