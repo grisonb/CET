@@ -3,22 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <title>Calcul CET</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       font-family: Arial, sans-serif;
       max-width: 1100px;
       margin: 20px auto;
+      padding: 0 16px;
       line-height: 1.4;
     }
 
     h1 {
-      font-size: 2rem;  /* ← taille augmentée */
+      font-size: 2rem;
       text-align: center;
       margin-bottom: 10px;
     }
 
-    /* Blocs neutres par défaut */
     .bloc {
       border: 1px solid #e0e0e0;
       padding: 12px 18px;
@@ -27,7 +28,6 @@
       background: #fafafa;
     }
 
-    /* Bloc Données de l’agent en bleu */
     .bloc-agent {
       border: 1px solid #c5d8f5;
       background: #e8f3ff;
@@ -108,7 +108,6 @@
       background: #c62828;
     }
 
-    /* Barre graphique */
     .graph1607-container {
       margin-top: 14px;
     }
@@ -165,7 +164,6 @@
       line-height: 1.6;
     }
 
-    /* Bandeau résumé rapide */
     #quickSummary {
       margin: 10px 0;
       padding: 8px 12px;
@@ -173,10 +171,9 @@
       background: #e8f3ff;
       border: 1px solid #c5d8f5;
       font-weight: 600;
-      font-size: 1.45rem; 
+      font-size: 1.45rem;
     }
 
-    /* Couleurs d’épargne */
     .epargne-ok {
       background: #d8f5dd !important;
       border-color: #8bc68f !important;
@@ -187,7 +184,6 @@
       border-color: #e59a9a !important;
     }
 
-    /* ===== MODALE ===== */
     #modalOverlay {
       position: fixed;
       inset: 0;
@@ -234,16 +230,45 @@
     #modalCloseBtn:hover {
       background: #43a047;
     }
+
+    /* ----- Optimisation smartphone ----- */
+    @media (max-width: 600px) {
+      body {
+        margin: 10px auto;
+        padding: 0 8px;
+        font-size: 0.95rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      input[type="number"],
+      .resultat input {
+        width: 100%;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      #quickSummary {
+        font-size: 1.1rem;
+      }
+
+      .graph1607-bar-bg {
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 
 <body>
   <h1>Gestion des jours épargnables (épargne temps / €€€)</h1>
 
-  <!-- Bandeau résumé rapide -->
   <div id="quickSummary">Synthèse jours épargnables : en attente de calcul.</div>
 
-  <!-- ====================== LIGNE 1 ====================== -->
+  <!-- LIGNE 1 -->
   <div class="row">
 
     <!-- Données -->
@@ -253,27 +278,27 @@
       <label>
         Heures effectuées dans l'année :
         <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
-          <input type="number" id="heures" step="0.1" min="0" value="0">
+          <input type="number" id="heures" step="0.1" min="0">
           <select id="annee" onchange="majLibelleCR()"></select>
         </div>
       </label>
 
       <label>
         Nombre de CA restant (jours) :
-        <input type="number" id="caRestant" step="1" min="0" value="0">
+        <input type="number" id="caRestant" step="1" min="0">
       </label>
 
       <label>
         Nombre de RTT restant (jours) :
-        <input type="number" id="rttRestant" step="1" min="0" value="0">
+        <input type="number" id="rttRestant" step="1" min="0">
       </label>
 
       <label>
         CRN-1 (jours) :
-        <input type="number" id="crn1" step="0.01" min="0" value="0">
+        <input type="number" id="crn1" step="0.01" min="0">
       </label>
 
-      <div style="display:flex; gap:10px;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <button type="button" class="btn-primary" onclick="calculCET()">Calculer</button>
         <button type="button" class="btn-danger" onclick="resetAll()">Remise à 0</button>
       </div>
@@ -303,6 +328,11 @@
       </label>
 
       <label>
+        CRN-1 utilisés pour atteindre 1607h (jours) :
+        <input type="number" id="crn1Utilises" readonly>
+      </label>
+
+      <label>
         Heures supplémentaires :
         <input type="number" id="heuresSupp" readonly>
       </label>
@@ -319,9 +349,8 @@
     </div>
   </div>
 
-  <!-- ====================== LIGNE 2 ====================== -->
+  <!-- LIGNE 2 -->
   <div class="row">
-
     <div class="bloc resultat">
       <h3>Épargne CA / RTT / CR</h3>
 
@@ -331,13 +360,8 @@
       </label>
 
       <label>
-        RTT épargnables (21 jours maxi) :
+        RTT épargnables (21 jours maxi - 1 jour solidarité) :
         <input type="number" id="rttEpargnables" readonly>
-      </label>
-
-      <label>
-        CRN-1 épargnables (15 jours maxi) :
-        <input type="number" id="crn1Epargnables" readonly>
       </label>
 
       <label id="crLabel">
@@ -345,25 +369,21 @@
         <input type="number" id="crJours" readonly>
       </label>
 
-      <div id="resume"></div>
-    </div>
-
-    <div class="bloc resultat">
-      <h3>CRN-1 / CRN-2</h3>
-
       <label>
-        CRN-1 utilisés pour atteindre 1607h (jours) :
-        <input type="number" id="crn1Utilises" readonly>
+        CRN-1 épargnables (15 jours maxi) :
+        <input type="number" id="crn1Epargnables" readonly>
       </label>
 
       <label>
-        CRN-2 (jours) :
+        CRN-2 compteur exceptionnel :
         <input type="number" id="crn2" readonly>
       </label>
+
+      <div id="resume"></div>
     </div>
   </div>
 
-  <!-- ===== MODALE ===== -->
+  <!-- MODALE -->
   <div id="modalOverlay">
     <div id="modalBox">
       <div id="modalTitle">Résumé de votre situation CET</div>
@@ -373,10 +393,15 @@
     </div>
   </div>
 
-  <!-- ====================== SCRIPT ====================== -->
+  <!-- SCRIPT -->
   <script>
     function formatNum(n) {
       return Number.isInteger(n) ? n.toString() : n.toFixed(2);
+    }
+
+    // Arrondi "jours" vers le bas, sans décimal
+    function floorDay(n) {
+      return Math.floor((n || 0) + 1e-9);
     }
 
     function initAnnee() {
@@ -415,10 +440,10 @@
     }
 
     function resetAll() {
-      document.getElementById('heures').value = 0;
-      document.getElementById('caRestant').value = 0;
-      document.getElementById('rttRestant').value = 0;
-      document.getElementById('crn1').value = 0;
+      document.getElementById('heures').value = '';
+      document.getElementById('caRestant').value = '';
+      document.getElementById('rttRestant').value = '';
+      document.getElementById('crn1').value = '';
 
       const ids = [
         'heuresRestantes','heuresSupp','joursTheoriques','epargnePossible',
@@ -463,6 +488,9 @@
       let eligibleEpargneCA = false;
       let explicationCA = "";
 
+      // Pour l'explication RTT générés - 1 solidarité
+      let baseRTTEligibles = 0;
+
       if (heures >= HEURES_ANNUELLES) {
         seuil1607Atteint = true;
         eligibleEpargneCA = true;
@@ -495,18 +523,25 @@
       }
 
       if (heuresSupp > 0) {
-  // Calcul des jours théoriques issus des heures supp
-  joursTheoriques = heuresSupp / HEURES_PAR_JOUR;
+        joursTheoriques = heuresSupp / HEURES_PAR_JOUR;
 
-  // Corrige les erreurs d'arrondi type 20.999999999 en ajoutant un epsilon
-  const maxRTT = Math.floor(joursTheoriques + 1e-9);
+        const joursPleins = Math.floor(joursTheoriques + 1e-9);
 
-  rttEpargnables = Math.min(rttRestant, maxRTT);
+        if (joursPleins > 0) {
+          const PLAFOND_RTT_THEORIQUE = 21;
+          baseRTTEligibles = Math.min(rttRestant, joursPleins, PLAFOND_RTT_THEORIQUE);
 
-  // Même correction pour le calcul du CR
-  crJours = Math.floor((joursTheoriques - rttEpargnables) + 1e-9);
-}
+          const rttApresSolidarite = Math.max(0, baseRTTEligibles - 1);
 
+          const PLAFOND_RTT_CET = 20;
+          rttEpargnables = Math.min(PLAFOND_RTT_CET, rttApresSolidarite);
+
+          crJours = Math.floor((joursTheoriques - baseRTTEligibles) + 1e-9);
+        } else {
+          rttEpargnables = 0;
+          crJours = 0;
+        }
+      }
 
       if (seuil1607Atteint) {
         crn1RestantsLogiques = Math.max(0, crn1Input - crn1Utilises);
@@ -514,19 +549,31 @@
         crn2 = Math.max(0, crn1RestantsLogiques - crn1Epargnables);
       }
 
-      const epargnePossible =
-        caEpargnables + rttEpargnables + crn1Epargnables;
+      const epargnePossible = caEpargnables + rttEpargnables + crn1Epargnables;
 
-      document.getElementById("epargnePossible").value = formatNum(epargnePossible);
-      document.getElementById("caEpargnables").value = formatNum(caEpargnables);
-      document.getElementById("rttEpargnables").value = formatNum(rttEpargnables);
-      document.getElementById("crn1Epargnables").value = formatNum(crn1Epargnables);
-      document.getElementById("crJours").value = formatNum(crJours);
-      document.getElementById("heuresSupp").value = formatNum(heuresSupp);
-      document.getElementById("joursTheoriques").value = formatNum(joursTheoriques);
+      // ----- Arrondis pour l'AFFICHAGE des jours -----
+      const caEpargnablesInt      = floorDay(caEpargnables);
+      const rttEpargnablesInt     = floorDay(rttEpargnables);
+      const crn1EpargnablesInt    = floorDay(crn1Epargnables);
+      const crJoursInt            = floorDay(crJours);
+      const crn1UtilisesInt       = floorDay(crn1Utilises);
+      const crn2Int               = floorDay(crn2);
+      const epargnePossibleInt    = floorDay(epargnePossible);
+      const joursTheoriquesInt    = floorDay(joursTheoriques);
+      const crn1RestantsLogiquesInt = floorDay(crn1RestantsLogiques);
+      const baseRTTEligiblesInt   = floorDay(baseRTTEligibles);
+
+      // ----- Mise à jour des champs -----
+      document.getElementById("epargnePossible").value = epargnePossibleInt;
+      document.getElementById("caEpargnables").value = caEpargnablesInt;
+      document.getElementById("rttEpargnables").value = rttEpargnablesInt;
+      document.getElementById("crn1Epargnables").value = crn1EpargnablesInt;
+      document.getElementById("crJours").value = crJoursInt;
+      document.getElementById("heuresSupp").value = formatNum(heuresSupp);       // heures → décimal ok
+      document.getElementById("joursTheoriques").value = joursTheoriquesInt;     // jours → entier
       document.getElementById("heuresRestantes").value = formatNum(heuresRestantes);
-      document.getElementById("crn1Utilises").value = formatNum(crn1Utilises);
-      document.getElementById("crn2").value = formatNum(crn2);
+      document.getElementById("crn1Utilises").value = crn1UtilisesInt;
+      document.getElementById("crn2").value = crn2Int;
 
       const bar = document.getElementById("bar1607");
       const barSup = document.getElementById("barSup");
@@ -568,17 +615,21 @@
           resume += `Vous atteignez le seuil de 1607 h uniquement avec vos heures effectuées.<br><br>`;
           resume += `Vous avez effectué ${formatNum(heures)}h, soit ${formatNum(supp)}h supplémentaires.<br><br>`;
         } else {
-          resume += `Vous atteignez le seuil de 1607 h grâce à ${formatNum(crn1Utilises)} jour(s) de CRN-1 utilisés.<br><br>`;
+          resume += `Vous atteignez le seuil de 1607 h grâce à ${crn1UtilisesInt} jour(s) de CRN-1 utilisés.<br><br>`;
         }
 
-        resume += `Vous pouvez épargner ${formatNum(caEpargnables)} jour(s) de CA et ${formatNum(rttEpargnables)} jour(s) de RTT.<br><br>`;
+        if (rttEpargnablesInt > 0 && baseRTTEligiblesInt > 0) {
+          resume += `Vous pouvez épargner ${caEpargnablesInt} jour(s) de CA et ${rttEpargnablesInt} jour(s) de RTT (${baseRTTEligiblesInt} jours de RTT épargnables générés moins 1 jour de solidarité).<br>`;
+        } else {
+          resume += `Vous pouvez épargner ${caEpargnablesInt} jour(s) de CA et ${rttEpargnablesInt} jour(s) de RTT.<br>`;
+        }
 
         if (explicationCA !== "") {
-          resume += `<span style="color:#c62828;">${explicationCA}</span><br><br>`;
+          resume += `<br><span style="color:#c62828;">${explicationCA}</span><br>`;
         }
 
-        resume += `Il vous reste ${formatNum(crn1RestantsLogiques)} jour(s) de CRN-1 après utilisation, dont ${formatNum(crn1Epargnables)} jour(s) épargnable(s).<br><br>`;
-        resume += `Le surplus éventuel de CRN-1 alimente ${formatNum(crn2)} jour(s) de CRN-2.`;
+        resume += `<br>Il vous reste ${crn1RestantsLogiquesInt} jour(s) de CRN-1 après utilisation, dont ${crn1EpargnablesInt} jour(s) épargnable(s).<br><br>`;
+        resume += `Le surplus éventuel de CRN-1 alimente ${crn2Int} jour(s) de CRN-2.`;
       } else {
         resume += `Vous n'atteignez pas le seuil de 1607 h : il manque encore ${formatNum(heuresRestantes)} heure(s).<br><br>`;
         if (crn1Input > 0) {
@@ -590,11 +641,9 @@
 
       document.getElementById('resume').innerHTML = resume;
 
-      /* 🔵 Mise à jour du bandeau synthèse */
       document.getElementById('quickSummary').textContent =
-        `Synthèse jours épargnables : ${formatNum(caEpargnables)} CA / ${formatNum(rttEpargnables)} RTT / ${formatNum(crn1Epargnables)} CRN-1 / ${formatNum(crJours)} CR / ${formatNum(crn2)} CRN-2`;
+        `Synthèse jours épargnables : ${caEpargnablesInt} CA / ${rttEpargnablesInt} RTT / ${crn1EpargnablesInt} CRN-1 / ${crJoursInt} CR / ${crn2Int} CRN-2`;
 
-      /* Couleurs (vert si > 0, rouge sinon) */
       resetEpargneColors();
 
       const caField   = document.getElementById('caEpargnables');
@@ -603,17 +652,29 @@
       const crField   = document.getElementById('crJours');
       const crn2Field = document.getElementById('crn2');
 
-      (caEpargnables > 0 ? caField.classList.add('epargne-ok') : caField.classList.add('epargne-nok'));
-      (rttEpargnables > 0 ? rttField.classList.add('epargne-ok') : rttField.classList.add('epargne-nok'));
-      (crn1Epargnables > 0 ? crn1Field.classList.add('epargne-ok') : crn1Field.classList.add('epargne-nok'));
-      (crJours > 0 ? crField.classList.add('epargne-ok') : crField.classList.add('epargne-nok'));
+      (caEpargnablesInt > 0 ? caField.classList.add('epargne-ok') : caField.classList.add('epargne-nok'));
+      (rttEpargnablesInt > 0 ? rttField.classList.add('epargne-ok') : rttField.classList.add('epargne-nok'));
+      (crn1EpargnablesInt > 0 ? crn1Field.classList.add('epargne-ok') : crn1Field.classList.add('epargne-nok'));
+      (crJoursInt > 0 ? crField.classList.add('epargne-ok') : crField.classList.add('epargne-nok'));
 
-      if (crn2 > 0) crn2Field.classList.add('epargne-ok');
+      if (crn2Int > 0) crn2Field.classList.add('epargne-ok');
 
       showModal(resume);
     }
 
+    function initInputs() {
+      const editableNumberInputs = document.querySelectorAll('input[type="number"]:not([readonly])');
+      editableNumberInputs.forEach(input => {
+        input.addEventListener('focus', function () {
+          setTimeout(() => {
+            input.select();
+          }, 0);
+        });
+      });
+    }
+
     initAnnee();
+    initInputs();
   </script>
 
 </body>
