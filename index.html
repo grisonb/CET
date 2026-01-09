@@ -101,7 +101,7 @@
       background: #c62828;
     }
 
-    /* ===== Barre 1607h ===== */
+    /* ===== Barre seuil annuel ===== */
     .graph1607-container {
       margin-top: 14px;
     }
@@ -270,6 +270,14 @@
           </div>
         </label>
 
+        <label>
+          Heures dues dans l'année :
+          <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <input type="number" id="heuresDues" step="0.1" min="0" value="1607">
+            <select id="anneeDues"></select>
+          </div>
+        </label>
+
         <label>Nombre de CA restant (jours) :
           <input type="number" id="caRestant" step="1" min="0">
         </label>
@@ -306,11 +314,11 @@
           </div>
         </div>
 
-        <label>Heures restantes pour atteindre 1607h :
+        <label>Heures restantes pour atteindre le seuil annuel :
           <input type="number" id="heuresRestantes" readonly>
         </label>
 
-        <label>CRN-1 utilisés pour atteindre 1607h (jours) :
+        <label>CRN-1 utilisés pour atteindre le seuil annuel (jours) :
           <input type="number" id="crn1Utilises" readonly>
         </label>
 
@@ -379,16 +387,29 @@
     }
 
     function initAnnee() {
-      const select = document.getElementById("annee");
+      const select1 = document.getElementById("annee");
+      const select2 = document.getElementById("anneeDues");
       const current = new Date().getFullYear();
+
       for (let a = 2023; a <= 2032; a++) {
-        const o = document.createElement("option");
-        o.value = a;
-        o.textContent = a;
-        if (a === current) o.selected = true;
-        select.appendChild(o);
+        const o1 = document.createElement("option");
+        o1.value = a;
+        o1.textContent = a;
+        if (a === current) o1.selected = true;
+        select1.appendChild(o1);
+
+        const o2 = document.createElement("option");
+        o2.value = a;
+        o2.textContent = a;
+        if (a === current) o2.selected = true;
+        select2.appendChild(o2);
       }
+
+      const hd = document.getElementById("heuresDues");
+      if (!hd.value) hd.value = 1607;
+
       majLibelleCR();
+      updateLabelMainFromHeuresDues_();
     }
 
     function majLibelleCR() {
@@ -412,10 +433,18 @@
       });
     }
 
+    function updateLabelMainFromHeuresDues_() {
+      const hd = parseFloat(document.getElementById('heuresDues').value) || 1607;
+      document.getElementById("labelMain").textContent = `0 / ${formatNum(hd)} h`;
+    }
+
     function resetAll() {
       ['heures','caRestant','rttRestant','crn1'].forEach(id =>
         document.getElementById(id).value = ''
       );
+
+      // Heures dues : retour à 1607 par défaut
+      document.getElementById('heuresDues').value = 1607;
 
       [
         'heuresRestantes','heuresSupp','joursTheoriques','epargnePossible',
@@ -426,7 +455,7 @@
       document.getElementById("bar1607").style.width = "0%";
       document.getElementById("barSup").style.width = "0%";
 
-      document.getElementById("labelMain").textContent = "0 / 1607 h";
+      updateLabelMainFromHeuresDues_();
       document.getElementById("labelSup").textContent = "";
       document.getElementById("resume").innerHTML = "";
       document.getElementById("quickSummary").textContent =
@@ -438,40 +467,42 @@
 
     function calculCET() {
       const heures      = parseFloat(document.getElementById('heures').value)     || 0;
+      const heuresDues  = parseFloat(document.getElementById('heuresDues').value) || 1607;
       const caRestant   = parseFloat(document.getElementById('caRestant').value)  || 0;
       const rttRestant  = parseFloat(document.getElementById('rttRestant').value) || 0;
       const crn1Input   = parseFloat(document.getElementById('crn1').value)       || 0;
 
-     const HEURES_ANNUELLES = 1607;
-const HEURES_PAR_JOUR  = 7.8; // base générale (jours théoriques heures sup, etc.)
-const HEURES_PAR_CRN1_POUR_1607 = 7.0; // uniquement pour combler jusqu'à 1607h avec CRN-1
+      // seuil annuel dynamique (ex: 1607, 1530, etc.)
+      const HEURES_DUES = heuresDues;
+
+      const HEURES_PAR_JOUR  = 7.8; // base générale (jours théoriques heures sup, etc.)
+      const HEURES_PAR_CRN1_POUR_1607 = 7.0; // uniquement pour combler le manque avec CRN-1 (règle spécifique)
 
       let heuresSupp = 0;
       let heuresRestantes = 0;
       let seuil1607 = false;
 
-      if (heures >= HEURES_ANNUELLES) {
+      if (heures >= HEURES_DUES) {
         seuil1607 = true;
-        heuresSupp = heures - HEURES_ANNUELLES;
+        heuresSupp = heures - HEURES_DUES;
       } else {
-        heuresRestantes = HEURES_ANNUELLES - heures;
+        heuresRestantes = HEURES_DUES - heures;
       }
 
-     /* ===== CRN-1 pour atteindre 1607 h (ENTIER de jours) ===== */
-let crn1Utilises = 0;
-if (!seuil1607 && crn1Input > 0) {
-  const heuresManquantes = HEURES_ANNUELLES - heures;
+      /* ===== CRN-1 pour atteindre le seuil annuel (ENTIER de jours) ===== */
+      let crn1Utilises = 0;
+      if (!seuil1607 && crn1Input > 0) {
+        const heuresManquantes = HEURES_DUES - heures;
 
-  // IMPORTANT : pour combler le manque vers 1607h, 1 CRN-1 = 7,0 h (et pas 7,8)
-  const joursNecessaires = Math.ceil((heuresManquantes / HEURES_PAR_CRN1_POUR_1607) - 1e-9);
+        // IMPORTANT : pour combler le manque vers le seuil annuel, 1 CRN-1 = 7,0 h (et pas 7,8)
+        const joursNecessaires = Math.ceil((heuresManquantes / HEURES_PAR_CRN1_POUR_1607) - 1e-9);
 
-  if (joursNecessaires > 0 && crn1Input >= joursNecessaires) {
-    crn1Utilises = joursNecessaires; // entier
-    seuil1607 = true;
-    heuresRestantes = 0;
-  }
-}
-
+        if (joursNecessaires > 0 && crn1Input >= joursNecessaires) {
+          crn1Utilises = joursNecessaires; // entier
+          seuil1607 = true;
+          heuresRestantes = 0;
+        }
+      }
 
       /* CA épargnables */
       let caEpargnables = 0;
@@ -481,7 +512,7 @@ if (!seuil1607 && crn1Input > 0) {
           caEpargnables = caRestant;
         } else {
           explicationCA =
-            "Vous avez bien atteint les 1607 h, mais vous ne pouvez pas épargner de CA car il vous reste plus de 9 jours (minimum 20 CA à poser).";
+            `Vous avez bien atteint le seuil annuel (${formatNum(HEURES_DUES)} h), mais vous ne pouvez pas épargner de CA car il vous reste plus de 9 jours (minimum 20 CA à poser).`;
         }
       }
 
@@ -536,21 +567,21 @@ if (!seuil1607 && crn1Input > 0) {
       document.getElementById("crn2").value            = crn2;
       document.getElementById("epargnePossible").value = epargneTotale;
 
-      /* Barre 1607h */
+      /* Barre seuil annuel */
       const bar = document.getElementById("bar1607");
       const barSup = document.getElementById("barSup");
 
       if (heuresSupp > 0) {
-        const total = HEURES_ANNUELLES + heuresSupp;
-        bar.style.width    = (HEURES_ANNUELLES / total * 100) + "%";
+        const total = HEURES_DUES + heuresSupp;
+        bar.style.width    = (HEURES_DUES / total * 100) + "%";
         barSup.style.width = (heuresSupp / total * 100) + "%";
       } else {
-        bar.style.width    = (heures / HEURES_ANNUELLES * 100) + "%";
+        bar.style.width    = (heures / HEURES_DUES * 100) + "%";
         barSup.style.width = "0%";
       }
 
       document.getElementById("labelMain").textContent =
-        `${formatNum(Math.min(heures, 1607))} / 1607 h`;
+        `${formatNum(Math.min(heures, HEURES_DUES))} / ${formatNum(HEURES_DUES)} h`;
       document.getElementById("labelSup").textContent =
         heuresSupp > 0 ? `+${formatNum(heuresSupp)} h sup` : "";
 
@@ -558,10 +589,16 @@ if (!seuil1607 && crn1Input > 0) {
       let R = "";
 
       if (seuil1607) {
-        if (heures >= 1607) {
-          R += `Vous atteignez le seuil de 1607 h uniquement avec vos heures effectuées.<br><br>`;
+        if (heures >= HEURES_DUES) {
+          if (heures >= HEURES_DUES && crn1Util === 0 && heures >= HEURES_DUES) {
+            // cas simple : uniquement heures
+          }
+        }
+
+        if (heures >= HEURES_DUES && crn1Util === 0) {
+          R += `Vous atteignez le seuil de ${formatNum(HEURES_DUES)} h uniquement avec vos heures effectuées.<br><br>`;
         } else {
-          R += `Vous atteignez le seuil de 1607 h grâce à ${crn1Util} jour(s) de CRN-1 utilisés.<br><br>`;
+          R += `Vous atteignez le seuil de ${formatNum(HEURES_DUES)} h grâce à ${crn1Util} jour(s) de CRN-1 utilisés.<br><br>`;
         }
 
         R += `Vous pouvez épargner ${caEpargnables} jour(s) de CA et ${rttEpargnables} jour(s) de RTT`;
@@ -577,9 +614,9 @@ if (!seuil1607 && crn1Input > 0) {
         R += `Il vous reste ${crn1RestantsInt} jour(s) de CRN-1 après utilisation, dont ${crn1Epargnables} jour(s) épargnable(s).<br><br>`;
         R += `Le surplus alimente ${crn2} jour(s) de CRN-2.`;
       } else {
-        R += `Vous n'atteignez pas le seuil de 1607 h : il manque encore ${formatNum(heuresRestantes)} h.<br><br>`;
+        R += `Vous n'atteignez pas le seuil de ${formatNum(HEURES_DUES)} h : il manque encore ${formatNum(heuresRestantes)} h.<br><br>`;
         if (crn1Input > 0) {
-          R += `Vos ${crn1Input} CRN-1 ne suffisent pas à atteindre 1607 h et ne sont donc pas épargnables.`;
+          R += `Vos ${crn1Input} CRN-1 ne suffisent pas à atteindre ${formatNum(HEURES_DUES)} h et ne sont donc pas épargnables.`;
         } else {
           R += `Vous ne disposez d'aucun CRN-1 pour combler ce manque.`;
         }
@@ -617,6 +654,12 @@ if (!seuil1607 && crn1Input > 0) {
           setTimeout(() => input.select(), 0);
         });
       });
+
+      // mise à jour immédiate du libellé si on change le seuil "heures dues"
+      const hd = document.getElementById('heuresDues');
+      if (hd) {
+        hd.addEventListener('input', updateLabelMainFromHeuresDues_);
+      }
     }
 
     initAnnee();
@@ -625,4 +668,3 @@ if (!seuil1607 && crn1Input > 0) {
 
 </body>
 </html>
-
