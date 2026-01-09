@@ -442,8 +442,9 @@
       const rttRestant  = parseFloat(document.getElementById('rttRestant').value) || 0;
       const crn1Input   = parseFloat(document.getElementById('crn1').value)       || 0;
 
-      const HEURES_ANNUELLES = 1607;
-      const HEURES_PAR_JOUR  = 7.8;
+     const HEURES_ANNUELLES = 1607;
+const HEURES_PAR_JOUR  = 7.8; // base générale (jours théoriques heures sup, etc.)
+const HEURES_PAR_CRN1_POUR_1607 = 7.0; // uniquement pour combler jusqu'à 1607h avec CRN-1
 
       let heuresSupp = 0;
       let heuresRestantes = 0;
@@ -456,18 +457,21 @@
         heuresRestantes = HEURES_ANNUELLES - heures;
       }
 
-      /* ===== CRN-1 pour atteindre 1607 h (ENTIER de jours) ===== */
-      let crn1Utilises = 0;
-      if (!seuil1607 && crn1Input > 0) {
-        const heuresManquantes = HEURES_ANNUELLES - heures;
-        const joursNecessaires = Math.ceil((heuresManquantes / HEURES_PAR_JOUR) - 1e-9);
+     /* ===== CRN-1 pour atteindre 1607 h (ENTIER de jours) ===== */
+let crn1Utilises = 0;
+if (!seuil1607 && crn1Input > 0) {
+  const heuresManquantes = HEURES_ANNUELLES - heures;
 
-        if (joursNecessaires > 0 && crn1Input >= joursNecessaires) {
-          crn1Utilises = joursNecessaires;      // entier
-          seuil1607 = true;
-          heuresRestantes = 0;
-        }
-      }
+  // IMPORTANT : pour combler le manque vers 1607h, 1 CRN-1 = 7,0 h (et pas 7,8)
+  const joursNecessaires = Math.ceil((heuresManquantes / HEURES_PAR_CRN1_POUR_1607) - 1e-9);
+
+  if (joursNecessaires > 0 && crn1Input >= joursNecessaires) {
+    crn1Utilises = joursNecessaires; // entier
+    seuil1607 = true;
+    heuresRestantes = 0;
+  }
+}
+
 
       /* CA épargnables */
       let caEpargnables = 0;
@@ -621,3 +625,4 @@
 
 </body>
 </html>
+
