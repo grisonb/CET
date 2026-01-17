@@ -714,6 +714,38 @@
       const pdfDoc = await PDFLib.PDFDocument.load(bytes);
       const form = pdfDoc.getForm();
 
+      // ===== CET historique / pérenne (cases + jours) =====
+const histChk = document.getElementById('cetHistoriqueChk').checked;
+const histJ   = parseFloat(document.getElementById('cetHistoriqueJours').value) || 0;
+
+const perChk  = document.getElementById('cetPerenneChk').checked;
+const perJ    = parseFloat(document.getElementById('cetPerenneJours').value) || 0;
+
+// Checkboxes PDF
+const pdfHistChk = form.getCheckBox('Check Box14');
+const pdfPerChk  = form.getCheckBox('Check Box16');
+
+// Champs jours PDF
+const pdfHistDays = form.getTextField('CETH');
+const pdfPerDays  = form.getTextField('CETP');
+
+if (histChk) {
+  pdfHistChk.check();
+  pdfHistDays.setText(String(histJ));
+} else {
+  pdfHistChk.uncheck();
+  pdfHistDays.setText('');
+}
+
+if (perChk) {
+  pdfPerChk.check();
+  pdfPerDays.setText(String(perJ));
+} else {
+  pdfPerChk.uncheck();
+  pdfPerDays.setText('');
+}
+
+
       // Champs du PDF (noms exacts déjà identifiés)
       form.getTextField('CA').setText(String(ca));
       form.getTextField('CA HP').setText(String(caHp));
@@ -758,3 +790,4 @@
 
 </body>
 </html>
+
