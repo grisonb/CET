@@ -294,6 +294,12 @@
           <button type="button" class="btn-primary" onclick="calculCET()">Calculer</button>
           <button type="button" class="btn-danger" onclick="resetAll()">Remise à 0</button>
         </div>
+
+        <!-- ===== PDF CET (Option A : choisir un fichier) ===== -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+          <input type="file" id="pdfInput" accept="application/pdf">
+          <button type="button" class="btn-primary" onclick="remplirPdfCET()">Préremplir le PDF CET</button>
+        </div>
       </div>
     </div>
 
@@ -376,6 +382,9 @@
       <div style="clear:both;"></div>
     </div>
   </div>
+
+  <!-- pdf-lib (nécessaire pour remplir le PDF) -->
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 
   <script>
     function floorDay(n) {
@@ -589,12 +598,6 @@
       let R = "";
 
       if (seuil1607) {
-        if (heures >= HEURES_DUES) {
-          if (heures >= HEURES_DUES && crn1Util === 0 && heures >= HEURES_DUES) {
-            // cas simple : uniquement heures
-          }
-        }
-
         if (heures >= HEURES_DUES && crn1Util === 0) {
           R += `Vous atteignez le seuil de ${formatNum(HEURES_DUES)} h uniquement avec vos heures effectuées.<br><br>`;
         } else {
@@ -645,6 +648,54 @@
       }
 
       showModal(R);
+    }
+
+    // ===== Remplissage du PDF CET (Option A : l'utilisateur choisit le fichier) =====
+    async function remplirPdfCET() {
+      // Sécurité : si l'utilisateur n'a pas cliqué "Calculer", on calcule d'abord
+      calculCET();
+
+      const fileInput = document.getElementById('pdfInput');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert("Choisis d'abord le PDF CET à préremplir (bouton Parcourir).");
+        return;
+      }
+
+      // On lit les valeurs calculées
+      const caTotal = parseFloat(document.getElementById('caEpargnables').value) || 0;
+      const rtt     = parseFloat(document.getElementById('rttEpargnables').value) || 0;
+      const rc      = parseFloat(document.getElementById('crJours').value) || 0;
+
+      // Règle CA / CA HP
+      const ca   = Math.min(caTotal, 7);
+      const caHp = Math.max(0, caTotal - 7);
+
+      // Charger le PDF choisi
+      const bytes = await fileInput.files[0].arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+      const form = pdfDoc.getForm();
+
+      // Champs du PDF (noms exacts)
+      form.getTextField('CA').setText(String(ca));
+      form.getTextField('CA HP').setText(String(caHp));
+      form.getTextField('RTT').setText(String(rtt));
+      form.getTextField('RC').setText(String(rc));
+
+      // Optionnel : figer les champs (n'exécute pas les calculs JavaScript du PDF)
+      // form.flatten();
+
+      const outBytes = await pdfDoc.save();
+
+      // Télécharger le PDF rempli
+      const blob = new Blob([outBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'CET_pre_rempli.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     }
 
     function initInputs() {
