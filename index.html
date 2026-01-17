@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+    /* ===== Layout global ===== */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -38,6 +39,10 @@
       background: #e8f3ff;
     }
 
+    .row {
+      margin-bottom: 15px;
+    }
+
     label {
       display: block;
       font-weight: 600;
@@ -45,10 +50,12 @@
     }
 
     input[type="number"] {
+      display: block;
       width: 110px;
       padding: 6px;
       margin-top: 6px;
       font-size: 1rem;
+      letter-spacing: 1px;
       border-radius: 4px;
       border: 1px solid #ccc;
     }
@@ -61,7 +68,14 @@
       border: 1px solid #ccc;
     }
 
+    .resultat input {
+      background: #eee;
+      font-weight: bold;
+      width: 130px;
+    }
+
     button {
+      margin-top: 18px;
       padding: 10px 14px;
       font-size: 1rem;
       cursor: pointer;
@@ -74,10 +88,12 @@
       color: #fff;
       border-color: #1565c0;
     }
+    .btn-primary:hover {
+      background: #1565c0;
+    }
 
     .btn-primary:disabled {
-      background: #9ebfe4;
-      border-color: #9ebfe4;
+      opacity: 0.55;
       cursor: not-allowed;
     }
 
@@ -85,6 +101,66 @@
       background: #e53935;
       color: #fff;
       border-color: #c62828;
+    }
+    .btn-danger:hover {
+      background: #c62828;
+    }
+
+    /* ===== Barre seuil annuel ===== */
+    .graph1607-container {
+      margin-top: 14px;
+    }
+
+    .graph1607-label-row {
+      position: relative;
+      margin-bottom: 4px;
+      height: 18px;
+    }
+
+    .graph1607-label-main {
+      position: absolute;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .graph1607-label-sup {
+      position: absolute;
+      right: 0;
+      font-weight: 600;
+    }
+
+    .graph1607-bar-bg {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      height: 20px;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 0 auto;
+      display: flex;
+    }
+
+    .graph1607-bar-fill {
+      height: 100%;
+      background: #4caf50;
+      width: 0%;
+    }
+
+    .graph1607-bar-sup {
+      height: 100%;
+      background: #f44336;
+      width: 0%;
+    }
+
+    #resume {
+      margin-top: 14px;
+      font-size: 0.9rem;
+      border-top: 1px solid #ddd;
+      padding-top: 8px;
+      line-height: 1.6;
     }
 
     #quickSummary {
@@ -94,110 +170,630 @@
       background: #e8f3ff;
       border: 1px solid #c5d8f5;
       font-weight: 600;
-      font-size: 1.2rem;
+      font-size: 1.45rem;
     }
 
-    /* Responsive */
+    .epargne-ok {
+      background: #d8f5dd !important;
+      border-color: #8bc68f !important;
+    }
+
+    .epargne-nok {
+      background: #fbd5d5 !important;
+      border-color: #e59a9a !important;
+    }
+
+    /* ===== Modale ===== */
+    #modalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    #modalBox {
+      background: #ffffff;
+      padding: 18px 22px;
+      border-radius: 12px;
+      max-width: 520px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      font-size: 0.95rem;
+    }
+
+    #modalTitle {
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    #modalText {
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    #modalCloseBtn {
+      padding: 7px 16px;
+      border-radius: 20px;
+      border: none;
+      background: #4caf50;
+      color: #fff;
+      cursor: pointer;
+      float: right;
+    }
+
+    #modalCloseBtn:hover {
+      background: #43a047;
+    }
+
+    /* ===== Zone PDF : même ligne / wrap auto ===== */
+    .pdf-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;         /* <-- retour ligne auto si écran étroit */
+      margin-top: 28px;        /* <-- plus d'espace vertical */
+    }
+
+    /* ===== Smartphone ===== */
     @media (max-width: 600px) {
-      h1 { font-size: 1.4rem; }
-      button { width: 100%; }
+      .page {
+        margin: 10px auto;
+        padding: 0 8px;
+        font-size: 0.95rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      #quickSummary {
+        font-size: 1.1rem;
+      }
+
+      .graph1607-bar-bg {
+        max-width: 100%;
+      }
     }
   </style>
 </head>
 
 <body>
-<div class="page">
-  <h1>Gestion des jours épargnables (épargne temps / €€€)</h1>
+  <div class="page">
+    <h1>Gestion des jours épargnables (épargne temps / €€€)</h1>
 
-  <div id="quickSummary">Synthèse jours épargnables : en attente de calcul.</div>
+    <div id="quickSummary">Synthèse jours épargnables : en attente de calcul.</div>
 
-  <div class="bloc bloc-agent">
-    <h2>Données de l'agent</h2>
+    <!-- ===== Données ===== -->
+    <div class="row">
+      <div class="bloc bloc-agent">
+        <h2>Données de l'agent</h2>
 
-    <label>
-      Heures effectuées dans l'année :
-      <div style="display:flex; align-items:center; gap:8px;">
-        <input type="number" id="heures" step="0.1" min="0">
-        <select id="annee"></select>
+        <!-- ===== CET historique / pérenne ===== -->
+        <div style="margin-top:8px;">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <input type="checkbox" id="cetHistoriqueChk" style="transform:scale(1.15);">
+            <div style="font-weight:600;">CET "historique" de</div>
+            <input type="number" id="cetHistoriqueJours" step="0.01" min="0" style="margin-top:0;">
+            <div style="font-weight:600;">jour(s)</div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px;">
+            <input type="checkbox" id="cetPerenneChk" style="transform:scale(1.15);">
+            <div style="font-weight:600;">CET "pérenne" de</div>
+            <input type="number" id="cetPerenneJours" step="0.01" min="0" style="margin-top:0;">
+            <div style="font-weight:600;">jour(s)</div>
+          </div>
+        </div>
+
+        <label>
+          Heures effectuées dans l'année :
+          <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <input type="number" id="heures" step="0.1" min="0">
+            <select id="annee" onchange="majLibelleCR()"></select>
+          </div>
+        </label>
+
+        <label>
+          Heures dues dans l'année :
+          <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <input type="number" id="heuresDues" step="0.1" min="0" value="1607">
+            <select id="anneeDues"></select>
+          </div>
+        </label>
+
+        <label>Nombre de CA restant (jours) :
+          <input type="number" id="caRestant" step="1" min="0">
+        </label>
+
+        <label>Nombre de RTT restant (jours) :
+          <input type="number" id="rttRestant" step="1" min="0">
+        </label>
+
+        <label>CRN-1 (jours) :
+          <input type="number" id="crn1" step="0.01" min="0">
+        </label>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-primary" onclick="calculCET()">Calculer</button>
+          <button type="button" class="btn-danger" onclick="resetAll()">Remise à 0</button>
+        </div>
+
+        <!-- ===== PDF CET ===== -->
+        <div class="pdf-actions">
+          <input type="file" id="pdfInput" accept="application/pdf">
+          <button type="button" class="btn-primary" id="btnPdf" onclick="remplirPdfCET()" disabled>
+            Préremplir le PDF CET
+          </button>
+        </div>
+
       </div>
-    </label>
-
-    <label>
-      Heures dues dans l'année :
-      <div style="display:flex; align-items:center; gap:8px;">
-        <input type="number" id="heuresDues" value="1607">
-        <select id="anneeDues"></select>
-      </div>
-    </label>
-
-    <label>Nombre de CA restant (jours) :
-      <input type="number" id="caRestant">
-    </label>
-
-    <label>Nombre de RTT restant (jours) :
-      <input type="number" id="rttRestant">
-    </label>
-
-    <label>CRN-1 (jours) :
-      <input type="number" id="crn1">
-    </label>
-
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-      <button class="btn-primary" onclick="calculCET()">Calculer</button>
-      <button class="btn-danger" onclick="resetAll()">Remise à 0</button>
     </div>
 
-    <!-- ===== PDF CET ===== -->
-    <div style="display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap;">
-      <input type="file" id="pdfInput" accept="application/pdf">
-      <button class="btn-primary" id="btnPdf" onclick="remplirPdfCET()" disabled>
-        Préremplir le PDF CET
-      </button>
+    <!-- ===== Résultats ===== -->
+    <div class="row">
+      <div class="bloc resultat">
+        <h2>Résultats</h2>
+
+        <div class="graph1607-container">
+          <div class="graph1607-label-row">
+            <div class="graph1607-label-main" id="labelMain">0 / 1607 h</div>
+            <div class="graph1607-label-sup" id="labelSup"></div>
+          </div>
+
+          <div class="graph1607-bar-bg">
+            <div class="graph1607-bar-fill" id="bar1607"></div>
+            <div class="graph1607-bar-sup" id="barSup"></div>
+          </div>
+        </div>
+
+        <label>Heures restantes pour atteindre le seuil annuel :
+          <input type="number" id="heuresRestantes" readonly>
+        </label>
+
+        <label>CRN-1 utilisés pour atteindre le seuil annuel (jours) :
+          <input type="number" id="crn1Utilises" readonly>
+        </label>
+
+        <label>Heures supplémentaires :
+          <input type="number" id="heuresSupp" readonly>
+        </label>
+
+        <label>Jours théoriques issus des heures supp :
+          <input type="number" id="joursTheoriques" readonly>
+        </label>
+
+        <label>Épargne totale possible (jours) :
+          <input type="number" id="epargnePossible" readonly>
+        </label>
+      </div>
+    </div>
+
+    <!-- ===== Épargne CA / RTT / CR ===== -->
+    <div class="row">
+      <div class="bloc resultat">
+        <h3>Épargne CA / RTT / CR</h3>
+
+        <label>CA épargnables (9 jours maxi) :
+          <input type="number" id="caEpargnables" readonly>
+        </label>
+
+        <label>RTT épargnables (21 jours maxi - 1 jour solidarité) :
+          <input type="number" id="rttEpargnables" readonly>
+        </label>
+
+        <label id="crLabel">
+          CR utilisable en <span id="crAnnee"></span> :
+          <input type="number" id="crJours" readonly>
+        </label>
+
+        <label>CRN-1 épargnables (15 jours maxi) :
+          <input type="number" id="crn1Epargnables" readonly>
+        </label>
+
+        <label>CRN-2 compteur exceptionnel :
+          <input type="number" id="crn2" readonly>
+        </label>
+
+        <div id="resume"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== MODALE ===== -->
+  <div id="modalOverlay">
+    <div id="modalBox">
+      <div id="modalTitle">Résumé de votre situation CET</div>
+      <div id="modalText"></div>
+      <button id="modalCloseBtn" onclick="hideModal()">Fermer</button>
+      <div style="clear:both;"></div>
     </div>
   </div>
-</div>
 
-<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <!-- pdf-lib (nécessaire pour remplir le PDF) -->
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 
-<script>
-  function initAnnee() {
-    const current = new Date().getFullYear() - 1;
-    ['annee', 'anneeDues'].forEach(id => {
-      const sel = document.getElementById(id);
+  <script>
+    // Pour transfert PDF : on garde des valeurs "brutes"
+    // RTT transféré = baseRTT (AVANT retrait journée solidarité)
+    // RC du PDF = CRN-1 épargnables
+    window._lastBaseRTT = 0;
+    window._lastCrn1Epargnables = 0;
+
+    function floorDay(n) {
+      return Math.floor((n || 0) + 1e-9);
+    }
+
+    function formatNum(n) {
+      return Number.isInteger(n) ? n : n.toFixed(2);
+    }
+
+    function initAnnee() {
+      const select1 = document.getElementById("annee");
+      const select2 = document.getElementById("anneeDues");
+
+      // Par défaut : N-1
+      const current = new Date().getFullYear() - 1;
+
       for (let a = 2023; a <= 2032; a++) {
-        const o = document.createElement('option');
-        o.value = a;
-        o.textContent = a;
-        if (a === current) o.selected = true;
-        sel.appendChild(o);
+        const o1 = document.createElement("option");
+        o1.value = a;
+        o1.textContent = a;
+        if (a === current) o1.selected = true;
+        select1.appendChild(o1);
+
+        const o2 = document.createElement("option");
+        o2.value = a;
+        o2.textContent = a;
+        if (a === current) o2.selected = true;
+        select2.appendChild(o2);
       }
-    });
-  }
 
-  function calculCET() {
-    document.getElementById('quickSummary').textContent =
-      'Calcul effectué – prêt pour le PDF.';
-  }
+      const hd = document.getElementById("heuresDues");
+      if (!hd.value) hd.value = 1607;
 
-  function resetAll() {
-    document.querySelectorAll('input[type="number"]').forEach(i => i.value = '');
-    document.getElementById('heuresDues').value = 1607;
-    document.getElementById('quickSummary').textContent =
-      'Synthèse jours épargnables : en attente de calcul.';
-  }
+      majLibelleCR();
+      updateLabelMainFromHeuresDues_();
+    }
 
-  async function remplirPdfCET() {
-    calculCET();
-    alert('PDF prérempli (logique conservée ici)');
-  }
+    function majLibelleCR() {
+      document.getElementById('crAnnee').textContent =
+        parseInt(document.getElementById('annee').value, 10) + 1;
+    }
 
-  // Bonus UX : activation du bouton PDF
-  document.getElementById('pdfInput').addEventListener('change', e => {
-    document.getElementById('btnPdf').disabled = !e.target.files.length;
-  });
+    function showModal(html) {
+      document.getElementById('modalText').innerHTML = html;
+      document.getElementById('modalOverlay').style.display = 'flex';
+    }
 
-  initAnnee();
-</script>
+    function hideModal() {
+      document.getElementById('modalOverlay').style.display = 'none';
+    }
+
+    function resetEpargneColors() {
+      ['caEpargnables', 'rttEpargnables', 'crn1Epargnables', 'crJours', 'crn2'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('epargne-ok', 'epargne-nok');
+      });
+    }
+
+    function updateLabelMainFromHeuresDues_() {
+      const hd = parseFloat(document.getElementById('heuresDues').value) || 1607;
+      document.getElementById("labelMain").textContent = `0 / ${formatNum(hd)} h`;
+    }
+
+    function resetAll() {
+      ['heures','caRestant','rttRestant','crn1'].forEach(id =>
+        document.getElementById(id).value = ''
+      );
+
+      // CET historique / pérenne
+      document.getElementById('cetHistoriqueChk').checked = false;
+      document.getElementById('cetPerenneChk').checked = false;
+      document.getElementById('cetHistoriqueJours').value = '';
+      document.getElementById('cetPerenneJours').value = '';
+
+      // Heures dues : retour à 1607 par défaut
+      document.getElementById('heuresDues').value = 1607;
+
+      [
+        'heuresRestantes','heuresSupp','joursTheoriques','epargnePossible',
+        'caEpargnables','rttEpargnables','crn1Epargnables','crJours',
+        'crn1Utilises','crn2'
+      ].forEach(id => document.getElementById(id).value = 0);
+
+      document.getElementById("bar1607").style.width = "0%";
+      document.getElementById("barSup").style.width = "0%";
+
+      updateLabelMainFromHeuresDues_();
+      document.getElementById("labelSup").textContent = "";
+      document.getElementById("resume").innerHTML = "";
+      document.getElementById("quickSummary").textContent =
+        "Synthèse jours épargnables : en attente de calcul.";
+
+      window._lastBaseRTT = 0;
+      window._lastCrn1Epargnables = 0;
+
+      resetEpargneColors();
+      hideModal();
+    }
+
+    function calculCET(options = {}) {
+      const heures      = parseFloat(document.getElementById('heures').value)     || 0;
+      const heuresDues  = parseFloat(document.getElementById('heuresDues').value) || 1607;
+      const caRestant   = parseFloat(document.getElementById('caRestant').value)  || 0;
+      const rttRestant  = parseFloat(document.getElementById('rttRestant').value) || 0;
+      const crn1Input   = parseFloat(document.getElementById('crn1').value)       || 0;
+
+      const HEURES_DUES = heuresDues;
+
+      const HEURES_PAR_JOUR  = 7.8;
+      const HEURES_PAR_CRN1_POUR_1607 = 7.0;
+
+      let heuresSupp = 0;
+      let heuresRestantes = 0;
+      let seuil1607 = false;
+
+      if (heures >= HEURES_DUES) {
+        seuil1607 = true;
+        heuresSupp = heures - HEURES_DUES;
+      } else {
+        heuresRestantes = HEURES_DUES - heures;
+      }
+
+      let crn1Utilises = 0;
+      if (!seuil1607 && crn1Input > 0) {
+        const heuresManquantes = HEURES_DUES - heures;
+        const joursNecessaires = Math.ceil((heuresManquantes / HEURES_PAR_CRN1_POUR_1607) - 1e-9);
+
+        if (joursNecessaires > 0 && crn1Input >= joursNecessaires) {
+          crn1Utilises = joursNecessaires;
+          seuil1607 = true;
+          heuresRestantes = 0;
+        }
+      }
+
+      let caEpargnables = 0;
+      let explicationCA = "";
+      if (seuil1607) {
+        if (caRestant <= 9) {
+          caEpargnables = caRestant;
+        } else {
+          explicationCA =
+            `Vous avez bien atteint le seuil annuel (${formatNum(HEURES_DUES)} h), mais vous ne pouvez pas épargner de CA car il vous reste plus de 9 jours (minimum 20 CA à poser).`;
+        }
+      }
+
+      let joursTheoriques = 0;
+      let rttEpargnables = 0;
+      let crJours = 0;
+      let baseRTT = 0;
+
+      if (heuresSupp > 0) {
+        joursTheoriques = heuresSupp / HEURES_PAR_JOUR;
+        const joursPleins = floorDay(joursTheoriques);
+
+        // baseRTT = jours "générés" (inclut potentiellement la journée solidarité)
+        baseRTT = Math.min(joursPleins, rttRestant, 21);
+
+        const rttSansSolidarite = Math.max(0, baseRTT - 1);
+        rttEpargnables = Math.min(20, rttSansSolidarite);
+
+        crJours = floorDay(joursTheoriques - baseRTT);
+      }
+
+      let crn1Restants = 0;
+      let crn1Epargnables = 0;
+      let crn2 = 0;
+
+      if (seuil1607) {
+        crn1Restants = crn1Input - crn1Utilises;
+        if (crn1Restants < 0) crn1Restants = 0;
+
+        crn1Epargnables = Math.min(crn1Restants, 15);
+        crn2 = crn1Restants - crn1Epargnables;
+      }
+
+      // Mémos pour transfert PDF
+      window._lastBaseRTT = baseRTT;                 // RTT sans retirer solidarité
+      window._lastCrn1Epargnables = crn1Epargnables; // RC PDF = CRN-1 épargnables
+
+      const epargneTotale = caEpargnables + rttEpargnables + crn1Epargnables;
+
+      document.getElementById("heuresRestantes").value = formatNum(heuresRestantes);
+      document.getElementById("heuresSupp").value      = formatNum(heuresSupp);
+      document.getElementById("joursTheoriques").value = floorDay(joursTheoriques);
+      document.getElementById("caEpargnables").value   = caEpargnables;
+      document.getElementById("rttEpargnables").value  = rttEpargnables;
+      document.getElementById("crJours").value         = crJours;
+      document.getElementById("crn1Utilises").value    = crn1Utilises;
+      document.getElementById("crn1Epargnables").value = crn1Epargnables;
+      document.getElementById("crn2").value            = crn2;
+      document.getElementById("epargnePossible").value = epargneTotale;
+
+      const bar = document.getElementById("bar1607");
+      const barSup = document.getElementById("barSup");
+
+      if (heuresSupp > 0) {
+        const total = HEURES_DUES + heuresSupp;
+        bar.style.width    = (HEURES_DUES / total * 100) + "%";
+        barSup.style.width = (heuresSupp / total * 100) + "%";
+      } else {
+        bar.style.width    = (heures / HEURES_DUES * 100) + "%";
+        barSup.style.width = "0%";
+      }
+
+      document.getElementById("labelMain").textContent =
+        `${formatNum(Math.min(heures, HEURES_DUES))} / ${formatNum(HEURES_DUES)} h`;
+      document.getElementById("labelSup").textContent =
+        heuresSupp > 0 ? `+${formatNum(heuresSupp)} h sup` : "";
+
+      let R = "";
+
+      if (seuil1607) {
+        if (heures >= HEURES_DUES && crn1Utilises === 0) {
+          R += `Vous atteignez le seuil de ${formatNum(HEURES_DUES)} h uniquement avec vos heures effectuées.<br><br>`;
+        } else {
+          R += `Vous atteignez le seuil de ${formatNum(HEURES_DUES)} h grâce à ${crn1Utilises} jour(s) de CRN-1 utilisés.<br><br>`;
+        }
+
+        R += `Vous pouvez épargner ${caEpargnables} jour(s) de CA et ${rttEpargnables} jour(s) de RTT`;
+        if (baseRTT > 0) {
+          R += ` (${baseRTT} jours générés moins 1 jour de solidarité).`;
+        }
+        R += `<br><br>`;
+
+        if (explicationCA) {
+          R += `<span style="color:#c62828;">${explicationCA}</span><br><br>`;
+        }
+
+        R += `Il vous reste ${crn1Restants} jour(s) de CRN-1 après utilisation, dont ${crn1Epargnables} jour(s) épargnable(s).<br><br>`;
+        R += `Le surplus alimente ${crn2} jour(s) de CRN-2.`;
+      } else {
+        R += `Vous n'atteignez pas le seuil de ${formatNum(HEURES_DUES)} h : il manque encore ${formatNum(heuresRestantes)} h.<br><br>`;
+        if (crn1Input > 0) {
+          R += `Vos ${crn1Input} CRN-1 ne suffisent pas à atteindre ${formatNum(HEURES_DUES)} h et ne sont donc pas épargnables.`;
+        } else {
+          R += `Vous ne disposez d'aucun CRN-1 pour combler ce manque.`;
+        }
+      }
+
+      document.getElementById("resume").innerHTML = R;
+
+      document.getElementById("quickSummary").textContent =
+        `Synthèse jours épargnables : ${caEpargnables} CA / ${rttEpargnables} RTT / ${crn1Epargnables} CRN-1 / ${crJours} CR / ${crn2} CRN-2`;
+
+      resetEpargneColors();
+
+      const caField   = document.getElementById('caEpargnables');
+      const rttField  = document.getElementById('rttEpargnables');
+      const crn1Field = document.getElementById('crn1Epargnables');
+      const crField   = document.getElementById('crJours');
+      const crn2Field = document.getElementById('crn2');
+
+      (caEpargnables  > 0 ? caField.classList.add('epargne-ok') : caField.classList.add('epargne-nok'));
+      (rttEpargnables > 0 ? rttField.classList.add('epargne-ok') : rttField.classList.add('epargne-nok'));
+      (crn1Epargnables> 0 ? crn1Field.classList.add('epargne-ok') : crn1Field.classList.add('epargne-nok'));
+      (crJours        > 0 ? crField.classList.add('epargne-ok') : crField.classList.add('epargne-nok'));
+      if (crn2 > 0) crn2Field.classList.add('epargne-ok');
+
+      if (!options.silent) {
+        showModal(R);
+      }
+    } // ✅ <-- FIN calculCET() (ACCOLADE MANQUANTE corrigée)
+
+    // ===== Remplissage du PDF CET =====
+    async function remplirPdfCET() {
+      // Ne pas afficher la modale
+      calculCET({ silent: true });
+
+      const fileInput = document.getElementById('pdfInput');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert("Choisis d'abord le PDF CET à préremplir (bouton Choisir un fichier).");
+        return;
+      }
+
+      // CA total = CA épargnables (max 9) puis règle PDF CA/CA HP
+      const caTotal = parseFloat(document.getElementById('caEpargnables').value) || 0;
+      const ca   = Math.min(caTotal, 7);
+      const caHp = Math.max(0, caTotal - 7);
+
+      // RTT à transférer SANS retirer journée solidarité => baseRTT
+      const rttPdf = parseFloat(window._lastBaseRTT) || 0;
+
+      // "repos compensateurs..." du PDF = CRN-1 épargnables
+      const rcPdf = parseFloat(window._lastCrn1Epargnables) || 0;
+
+      // Charger le PDF choisi
+      const bytes = await fileInput.files[0].arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+      const form = pdfDoc.getForm();
+
+      // ===== CET historique / pérenne (cases + jours) =====
+      const histChk = document.getElementById('cetHistoriqueChk').checked;
+      const histJ   = parseFloat(document.getElementById('cetHistoriqueJours').value) || 0;
+
+      const perChk  = document.getElementById('cetPerenneChk').checked;
+      const perJ    = parseFloat(document.getElementById('cetPerenneJours').value) || 0;
+
+      const pdfHistChk = form.getCheckBox('Check Box14');
+      const pdfPerChk  = form.getCheckBox('Check Box16');
+
+      const pdfHistDays = form.getTextField('CETH');
+      const pdfPerDays  = form.getTextField('CETP');
+
+      // Astuce : forcer une "saisie" en repassant par '0' pour déclencher les calculs du PDF
+      if (histChk) {
+        pdfHistChk.check();
+        pdfHistDays.setText('0');
+        pdfHistDays.setText(String(histJ));
+      } else {
+        pdfHistChk.uncheck();
+        pdfHistDays.setText('0');
+      }
+
+      if (perChk) {
+        pdfPerChk.check();
+        pdfPerDays.setText('0');
+        pdfPerDays.setText(String(perJ));
+      } else {
+        pdfPerChk.uncheck();
+        pdfPerDays.setText('0');
+      }
+
+      // Champs du PDF
+      form.getTextField('CA').setText(String(ca));
+      form.getTextField('CA HP').setText(String(caHp));
+      form.getTextField('RTT').setText(String(rttPdf));
+      form.getTextField('RC').setText(String(rcPdf));
+
+      const outBytes = await pdfDoc.save();
+
+      const blob = new Blob([outBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'CET_pre_rempli.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function initInputs() {
+      const editableNumberInputs = document.querySelectorAll('input[type="number"]:not([readonly])');
+      editableNumberInputs.forEach(input => {
+        input.addEventListener('focus', function () {
+          setTimeout(() => input.select(), 0);
+        });
+      });
+
+      const hd = document.getElementById('heuresDues');
+      if (hd) {
+        hd.addEventListener('input', updateLabelMainFromHeuresDues_);
+      }
+
+      // Bonus UX : activer/désactiver le bouton PDF
+      const file = document.getElementById('pdfInput');
+      const btn  = document.getElementById('btnPdf');
+      if (file && btn) {
+        file.addEventListener('change', () => {
+          btn.disabled = !(file.files && file.files.length > 0);
+        });
+      }
+    }
+
+    initAnnee();
+    initInputs();
+  </script>
 
 </body>
 </html>
