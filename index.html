@@ -262,6 +262,23 @@
       <div class="bloc bloc-agent">
         <h2>Données de l'agent</h2>
 
+        <!-- ===== CET historique / pérenne ===== -->
+        <div style="margin-top:8px;">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <input type="checkbox" id="cetHistoriqueChk" style="transform:scale(1.15);">
+            <div style="font-weight:600;">CET "historique" de</div>
+            <input type="number" id="cetHistoriqueJours" step="0.01" min="0" style="margin-top:0;">
+            <div style="font-weight:600;">jour(s)</div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px;">
+            <input type="checkbox" id="cetPerenneChk" style="transform:scale(1.15);">
+            <div style="font-weight:600;">CET "pérenne" de</div>
+            <input type="number" id="cetPerenneJours" step="0.01" min="0" style="margin-top:0;">
+            <div style="font-weight:600;">jour(s)</div>
+          </div>
+        </div>
+
         <label>
           Heures effectuées dans l'année :
           <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
@@ -387,6 +404,12 @@
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 
   <script>
+    // Pour transfert PDF : on garde des valeurs "brutes"
+    // RTT transféré = baseRTT (AVANT retrait journée solidarité)
+    // RC du PDF = CRN-1 épargnables (selon ta règle)
+    window._lastBaseRTT = 0;
+    window._lastCrn1Epargnables = 0;
+
     function floorDay(n) {
       return Math.floor((n || 0) + 1e-9);
     }
@@ -452,6 +475,12 @@
         document.getElementById(id).value = ''
       );
 
+      // CET historique / pérenne
+      document.getElementById('cetHistoriqueChk').checked = false;
+      document.getElementById('cetPerenneChk').checked = false;
+      document.getElementById('cetHistoriqueJours').value = '';
+      document.getElementById('cetPerenneJours').value = '';
+
       // Heures dues : retour à 1607 par défaut
       document.getElementById('heuresDues').value = 1607;
 
@@ -469,6 +498,9 @@
       document.getElementById("resume").innerHTML = "";
       document.getElementById("quickSummary").textContent =
         "Synthèse jours épargnables : en attente de calcul.";
+
+      window._lastBaseRTT = 0;
+      window._lastCrn1Epargnables = 0;
 
       resetEpargneColors();
       hideModal();
@@ -535,6 +567,7 @@
         joursTheoriques = heuresSupp / HEURES_PAR_JOUR;
         const joursPleins = floorDay(joursTheoriques);
 
+        // baseRTT = jours "générés" (inclut potentiellement la journée solidarité)
         baseRTT = Math.min(joursPleins, rttRestant, 21);
 
         const rttSansSolidarite = Math.max(0, baseRTT - 1);
@@ -555,6 +588,10 @@
         crn1Epargnables = Math.min(crn1Restants, 15);
         crn2 = crn1Restants - crn1Epargnables;
       }
+
+      // Mémos pour transfert PDF (règles demandées)
+      window._lastBaseRTT = baseRTT;                 // RTT SANS retirer solidarité
+      window._lastCrn1Epargnables = crn1Epargnables; // "RC" du PDF = CRN-1
 
       const epargneTotale =
         caEpargnables + rttEpargnables + crn1Epargnables;
@@ -652,7 +689,7 @@
 
     // ===== Remplissage du PDF CET (Option A : l'utilisateur choisit le fichier) =====
     async function remplirPdfCET() {
-      // Sécurité : si l'utilisateur n'a pas cliqué "Calculer", on calcule d'abord
+      // Sécurité : calcule/rafraîchit toujours avant transfert PDF
       calculCET();
 
       const fileInput = document.getElementById('pdfInput');
@@ -661,25 +698,27 @@
         return;
       }
 
-      // On lit les valeurs calculées
+      // CA total = CA épargnables (max 9) puis règle PDF CA/CA HP
       const caTotal = parseFloat(document.getElementById('caEpargnables').value) || 0;
-      const rtt     = parseFloat(document.getElementById('rttEpargnables').value) || 0;
-      const rc      = parseFloat(document.getElementById('crJours').value) || 0;
-
-      // Règle CA / CA HP
       const ca   = Math.min(caTotal, 7);
       const caHp = Math.max(0, caTotal - 7);
+
+      // RTT à transférer SANS retirer journée solidarité => baseRTT
+      const rttPdf = parseFloat(window._lastBaseRTT) || 0;
+
+      // "repos compensateurs..." du PDF = CRN-1 (épargnables)
+      const rcPdf = parseFloat(window._lastCrn1Epargnables) || 0;
 
       // Charger le PDF choisi
       const bytes = await fileInput.files[0].arrayBuffer();
       const pdfDoc = await PDFLib.PDFDocument.load(bytes);
       const form = pdfDoc.getForm();
 
-      // Champs du PDF (noms exacts)
+      // Champs du PDF (noms exacts déjà identifiés)
       form.getTextField('CA').setText(String(ca));
       form.getTextField('CA HP').setText(String(caHp));
-      form.getTextField('RTT').setText(String(rtt));
-      form.getTextField('RC').setText(String(rc));
+      form.getTextField('RTT').setText(String(rttPdf));
+      form.getTextField('RC').setText(String(rcPdf));
 
       // Optionnel : figer les champs (n'exécute pas les calculs JavaScript du PDF)
       // form.flatten();
