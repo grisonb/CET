@@ -731,10 +731,11 @@ const pdfPerDays  = form.getTextField('CETP');
 
 if (histChk) {
   pdfHistChk.check();
+  pdfHistDays.setText('0');
   pdfHistDays.setText(String(histJ));
 } else {
   pdfHistChk.uncheck();
-  pdfHistDays.setText('');
+  pdfHistDays.setText('0');
 }
 
 if (perChk) {
@@ -742,8 +743,9 @@ if (perChk) {
   pdfPerDays.setText(String(perJ));
 } else {
   pdfPerChk.uncheck();
-  pdfPerDays.setText('');
+  pdfPerDays.setText('0');
 }
+
 
 
       // Champs du PDF (noms exacts déjà identifiés)
@@ -790,4 +792,5 @@ if (perChk) {
 
 </body>
 </html>
+
 
