@@ -421,7 +421,8 @@
     function initAnnee() {
       const select1 = document.getElementById("annee");
       const select2 = document.getElementById("anneeDues");
-      const current = new Date().getFullYear();
+      const current = new Date().getFullYear() - 1; // année N-1 par défaut
+
 
       for (let a = 2023; a <= 2032; a++) {
         const o1 = document.createElement("option");
@@ -671,7 +672,7 @@
       if (!options.silent) {
   showModal(R);
 }
-
+}
 
     // ===== Remplissage du PDF CET (Option A : l'utilisateur choisit le fichier) =====
     async function remplirPdfCET() {
@@ -769,4 +770,5 @@
 
 </body>
 </html>
+
 
