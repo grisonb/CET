@@ -312,11 +312,10 @@
           <button type="button" class="btn-danger" onclick="resetAll()">Remise à 0</button>
         </div>
 
-        <!-- ===== PDF CET (Option A : choisir un fichier AU CLIC) ===== -->
+        <!-- ===== PDF CET (Option A : choisir un fichier) ===== -->
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-          <!-- input file caché : on l'ouvre via le bouton -->
-          <input type="file" id="pdfInput" accept="application/pdf" style="display:none;">
-          <button type="button" class="btn-primary" onclick="choosePdfAndFill()">Préremplir le PDF CET</button>
+          <input type="file" id="pdfInput" accept="application/pdf">
+          <button type="button" class="btn-primary" onclick="remplirPdfCET()">Préremplir le PDF CET</button>
         </div>
       </div>
     </div>
@@ -401,12 +400,15 @@
     </div>
   </div>
 
-  <!-- pdf-lib -->
+  <!-- pdf-lib (nécessaire pour remplir le PDF) -->
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 
   <script>
-    window._lastBaseRTT = 0;           // RTT transféré au PDF (sans enlever solidarité)
-    window._lastCrn1Epargnables = 0;   // RC PDF = CRN-1 épargnables
+    // Pour transfert PDF : on garde des valeurs "brutes"
+    // RTT transféré = baseRTT (AVANT retrait journée solidarité)
+    // RC du PDF = CRN-1 épargnables (selon ta règle)
+    window._lastBaseRTT = 0;
+    window._lastCrn1Epargnables = 0;
 
     function floorDay(n) {
       return Math.floor((n || 0) + 1e-9);
@@ -414,12 +416,6 @@
 
     function formatNum(n) {
       return Number.isInteger(n) ? n : n.toFixed(2);
-    }
-
-    // PDF : tes exemples affichent 79,0 / 30,0 / 9,0 => 1 décimale + virgule
-    function formatPdf1DecComma_(n) {
-      const x = Number.isFinite(n) ? n : 0;
-      return (Math.round(x * 10) / 10).toFixed(1).replace('.', ',');
     }
 
     function initAnnee() {
@@ -479,11 +475,13 @@
         document.getElementById(id).value = ''
       );
 
+      // CET historique / pérenne
       document.getElementById('cetHistoriqueChk').checked = false;
       document.getElementById('cetPerenneChk').checked = false;
       document.getElementById('cetHistoriqueJours').value = '';
       document.getElementById('cetPerenneJours').value = '';
 
+      // Heures dues : retour à 1607 par défaut
       document.getElementById('heuresDues').value = 1607;
 
       [
@@ -673,106 +671,68 @@
       showModal(R);
     }
 
-    // 1) bouton => ouvre la fenêtre de choix de fichier
-    function choosePdfAndFill() {
-      const input = document.getElementById('pdfInput');
-      input.value = "";        // permet de re-choisir le même fichier plusieurs fois
-      input.click();           // ouvre l'explorateur
-    }
-
-    // 2) dès qu'un fichier est sélectionné => remplissage automatique
-    document.addEventListener('DOMContentLoaded', () => {
-      const input = document.getElementById('pdfInput');
-      input.addEventListener('change', async () => {
-        if (input.files && input.files.length > 0) {
-          await remplirPdfCET();
-        }
-      });
-    });
-
-    // 3) remplissage PDF (en utilisant le fichier sélectionné dans pdfInput)
+    // ===== Remplissage du PDF CET (Option A : l'utilisateur choisit le fichier) =====
     async function remplirPdfCET() {
+      // Sécurité : calcule/rafraîchit toujours avant transfert PDF
       calculCET();
 
       const fileInput = document.getElementById('pdfInput');
-      if (!fileInput.files || fileInput.files.length === 0) return;
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert("Choisis d'abord le PDF CET à préremplir (bouton Parcourir).");
+        return;
+      }
 
-      // Règle CA/CA HP depuis CA épargnables :
-      // - CA = min(CA épargnables, 7)
-      // - CA HP = max(0, CA épargnables - 7)
+      // CA total = CA épargnables (max 9) puis règle PDF CA/CA HP
       const caTotal = parseFloat(document.getElementById('caEpargnables').value) || 0;
       const ca   = Math.min(caTotal, 7);
       const caHp = Math.max(0, caTotal - 7);
 
-      // RTT PDF = baseRTT (sans enlever solidarité)
+      // RTT à transférer SANS retirer journée solidarité => baseRTT
       const rttPdf = parseFloat(window._lastBaseRTT) || 0;
 
-      // RC PDF = CRN-1 épargnables
+      // "repos compensateurs..." du PDF = CRN-1 (épargnables)
       const rcPdf = parseFloat(window._lastCrn1Epargnables) || 0;
 
-      // CET
-      const histChk = document.getElementById('cetHistoriqueChk').checked;
-      const histJ   = parseFloat(document.getElementById('cetHistoriqueJours').value) || 0;
-      const perChk  = document.getElementById('cetPerenneChk').checked;
-      const perJ    = parseFloat(document.getElementById('cetPerenneJours').value) || 0;
-
-      const histVal = histChk ? histJ : 0;
-      const perVal  = perChk  ? perJ  : 0;
-
-      // Jours épargnés destinés à alimenter le CET (ligne "Nombre de jours épargnés ...")
-      const jePdf = ca + caHp + rttPdf + rcPdf;
-
-      // Champs “résultats” (pour éviter le bug “tout à 0 tant que je clique”)
-      const stockH = histVal;
-      const auDessus15 = stockH - 15;     // ton PDF affiche -6 quand stock=9
-      const soldeH = stockH;
-
-      const stockP = perVal;
-      const soldeApresAlim = stockP + jePdf; // ex : 79 + 30 = 109
-
+      // Charger le PDF choisi
       const bytes = await fileInput.files[0].arrayBuffer();
       const pdfDoc = await PDFLib.PDFDocument.load(bytes);
       const form = pdfDoc.getForm();
 
-      // Apparences (sinon valeurs parfois invisibles)
-      const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-      form.updateFieldAppearances(font);
-      if (form.acroForm && form.acroForm.setNeedAppearances) {
-        form.acroForm.setNeedAppearances(true);
+      // ===== CET historique / pérenne (cases + jours) =====
+      const histChk = document.getElementById('cetHistoriqueChk').checked;
+      const histJ   = parseFloat(document.getElementById('cetHistoriqueJours').value) || 0;
+
+      const perChk  = document.getElementById('cetPerenneChk').checked;
+      const perJ    = parseFloat(document.getElementById('cetPerenneJours').value) || 0;
+
+      const pdfHistChk = form.getCheckBox('Check Box14');
+      const pdfPerChk  = form.getCheckBox('Check Box16');
+
+      const pdfHistDays = form.getTextField('CETH');
+      const pdfPerDays  = form.getTextField('CETP');
+
+      if (histChk) {
+        pdfHistChk.check();
+        pdfHistDays.setText('0');
+        pdfHistDays.setText(String(histJ));
+      } else {
+        pdfHistChk.uncheck();
+        pdfHistDays.setText('0');
       }
 
-      // Champs de base alimentation
+      if (perChk) {
+        pdfPerChk.check();
+        pdfPerDays.setText(String(perJ));
+      } else {
+        pdfPerChk.uncheck();
+        pdfPerDays.setText('0');
+      }
+
+      // Champs du PDF (noms exacts déjà identifiés)
       form.getTextField('CA').setText(String(ca));
       form.getTextField('CA HP').setText(String(caHp));
       form.getTextField('RTT').setText(String(rttPdf));
       form.getTextField('RC').setText(String(rcPdf));
-      form.getTextField('JE').setText(formatPdf1DecComma_(jePdf));
-
-      // CET historique / pérenne : cases + jours
-      const pdfHistChk = form.getCheckBox('Check Box14');
-      const pdfPerChk  = form.getCheckBox('Check Box16');
-      const pdfHistDays = form.getTextField('CETH');
-      const pdfPerDays  = form.getTextField('CETP');
-
-      // Le PDF “réagit” à la saisie => toujours écrire une valeur
-      pdfHistDays.setText(formatPdf1DecComma_(histVal));
-      pdfPerDays.setText(formatPdf1DecComma_(perVal));
-
-      if (histChk) pdfHistChk.check(); else pdfHistChk.uncheck();
-      if (perChk)  pdfPerChk.check();  else pdfPerChk.uncheck();
-
-      // doublons (souvent utilisés par les calculs internes)
-      if (form.getTextField('CETH1')) form.getTextField('CETH1').setText(formatPdf1DecComma_(histVal));
-      if (form.getTextField('CETP1')) form.getTextField('CETP1').setText(formatPdf1DecComma_(perVal));
-
-      // Champs résultats (clé pour éviter “0,0” avant clic)
-      form.getTextField('STOCKH').setText(formatPdf1DecComma_(stockH));
-      form.getTextField('> seuil options').setText(formatPdf1DecComma_(auDessus15));
-      form.getTextField('Solde').setText(formatPdf1DecComma_(soldeH));
-      form.getTextField('STOCKA').setText(formatPdf1DecComma_(stockP));
-      form.getTextField('Max').setText(formatPdf1DecComma_(soldeApresAlim));
-
-      form.updateFieldAppearances(font);
 
       const outBytes = await pdfDoc.save();
 
@@ -796,7 +756,9 @@
       });
 
       const hd = document.getElementById('heuresDues');
-      if (hd) hd.addEventListener('input', updateLabelMainFromHeuresDues_);
+      if (hd) {
+        hd.addEventListener('input', updateLabelMainFromHeuresDues_);
+      }
     }
 
     initAnnee();
