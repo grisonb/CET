@@ -506,7 +506,7 @@
       hideModal();
     }
 
-    function calculCET() {
+    function calculCET(options = {}) {
       const heures      = parseFloat(document.getElementById('heures').value)     || 0;
       const heuresDues  = parseFloat(document.getElementById('heuresDues').value) || 1607;
       const caRestant   = parseFloat(document.getElementById('caRestant').value)  || 0;
@@ -668,13 +668,15 @@
       (crJours        > 0 ? crField.classList.add('epargne-ok') : crField.classList.add('epargne-nok'));
       if (crn2 > 0) crn2Field.classList.add('epargne-ok');
 
-      showModal(R);
-    }
+      if (!options.silent) {
+  showModal(R);
+}
+
 
     // ===== Remplissage du PDF CET (Option A : l'utilisateur choisit le fichier) =====
     async function remplirPdfCET() {
       // Sécurité : calcule/rafraîchit toujours avant transfert PDF
-      calculCET();
+      calculCET({ silent: true });
 
       const fileInput = document.getElementById('pdfInput');
       if (!fileInput.files || fileInput.files.length === 0) {
@@ -767,3 +769,4 @@
 
 </body>
 </html>
+
