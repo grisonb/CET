@@ -436,6 +436,13 @@
       return Number.isInteger(n) ? n : n.toFixed(2);
     }
 
+    // ✅ Affichage à 1 décimale (sans toucher aux calculs)
+    function format1(n) {
+      const x = Number(n);
+      if (!Number.isFinite(x)) return "0.0";
+      return x.toFixed(1);
+    }
+
     function initAnnee() {
       const select1 = document.getElementById("annee");
       const select2 = document.getElementById("anneeDues");
@@ -608,16 +615,19 @@
 
       const epargneTotale = caEpargnables + rttEpargnables + crn1Epargnables;
 
-      document.getElementById("heuresRestantes").value = formatNum(heuresRestantes);
-      document.getElementById("heuresSupp").value      = formatNum(heuresSupp);
-      document.getElementById("joursTheoriques").value = floorDay(joursTheoriques);
+      // ✅ "Résultats" : affichage avec 1 chiffre après la virgule
+      document.getElementById("heuresRestantes").value = format1(heuresRestantes);
+      document.getElementById("crn1Utilises").value    = format1(crn1Utilises);
+      document.getElementById("heuresSupp").value      = format1(heuresSupp);
+      document.getElementById("joursTheoriques").value = format1(joursTheoriques);
+      document.getElementById("epargnePossible").value = format1(epargneTotale);
+
+      // Autres champs (inchangés)
       document.getElementById("caEpargnables").value   = caEpargnables;
       document.getElementById("rttEpargnables").value  = rttEpargnables;
       document.getElementById("crJours").value         = crJours;
-      document.getElementById("crn1Utilises").value    = crn1Utilises;
       document.getElementById("crn1Epargnables").value = crn1Epargnables;
       document.getElementById("crn2").value            = crn2;
-      document.getElementById("epargnePossible").value = epargneTotale;
 
       const bar = document.getElementById("bar1607");
       const barSup = document.getElementById("barSup");
@@ -688,7 +698,7 @@
       if (!options.silent) {
         showModal(R);
       }
-    } // ✅ <-- FIN calculCET() (ACCOLADE MANQUANTE corrigée)
+    } // ✅ <-- FIN calculCET()
 
     // ===== Remplissage du PDF CET =====
     async function remplirPdfCET() {
