@@ -615,19 +615,19 @@
 
       const epargneTotale = caEpargnables + rttEpargnables + crn1Epargnables;
 
-      // ✅ "Résultats" : affichage avec 1 chiffre après la virgule
+      // ✅ Résultats : 1 décimale
       document.getElementById("heuresRestantes").value = format1(heuresRestantes);
       document.getElementById("crn1Utilises").value    = format1(crn1Utilises);
       document.getElementById("heuresSupp").value      = format1(heuresSupp);
       document.getElementById("joursTheoriques").value = format1(joursTheoriques);
       document.getElementById("epargnePossible").value = format1(epargneTotale);
 
-      // Autres champs (inchangés)
-      document.getElementById("caEpargnables").value   = caEpargnables;
-      document.getElementById("rttEpargnables").value  = rttEpargnables;
-      document.getElementById("crJours").value         = crJours;
-      document.getElementById("crn1Epargnables").value = crn1Epargnables;
-      document.getElementById("crn2").value            = crn2;
+      // ✅ Épargne CA / RTT / CR : 1 décimale aussi
+      document.getElementById("caEpargnables").value   = format1(caEpargnables);
+      document.getElementById("rttEpargnables").value  = format1(rttEpargnables);
+      document.getElementById("crJours").value         = format1(crJours);
+      document.getElementById("crn1Epargnables").value = format1(crn1Epargnables);
+      document.getElementById("crn2").value            = format1(crn2);
 
       const bar = document.getElementById("bar1607");
       const barSup = document.getElementById("barSup");
